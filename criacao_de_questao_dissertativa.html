@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>+Português</title>
+<style>
+    * { box-sizing: border-box; }
+
+    body {
+        font-family: Arial, Helvetica, sans-serif;
+        background-image: linear-gradient(30deg, cyan, rgb(35, 115, 235));
+        margin: 0;
+        padding: 25px;
+        min-height: 100vh;
+    }
+
+    .pagina {
+        width: 1000px;
+        margin: 0 auto;
+    }
+
+    header {
+        background-color: rgba(0, 0, 0, 0.8);
+        color: rgb(239, 249, 255);
+        padding: 20px;
+        text-align: center;
+    }
+
+    header input {
+        margin-top: 10px;
+        outline: none;
+        padding: 10px;
+        width: 300px;
+    }
+
+    main {
+        margin-top: 40px;
+        padding-bottom: 60px;
+    }
+
+    .titulo_pagina {
+        background-color: rgba(0, 0, 0, 0.8);
+        color: white;
+        text-align: center;
+        padding: 15px;
+        border-radius: 8px;
+        font-size: 20px;
+        font-weight: bold;
+        margin-bottom: 25px;
+    }
+
+    .formulario {
+        background: rgb(250, 253, 255);
+        padding: 25px;
+        border-radius: 8px;
+    }
+
+    .campo {
+        margin-bottom: 18px;
+    }
+
+    .campo label {
+        display: block;
+        font-weight: bold;
+        margin-bottom: 6px;
+        color: rgb(40, 40, 40);
+    }
+
+    .campo input[type="text"],
+    .campo select,
+    .campo textarea {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        font-size: 15px;
+        font-family: Arial, Helvetica, sans-serif;
+        outline: none;
+    }
+
+    .campo input[type="text"]:focus,
+    .campo select:focus,
+    .campo textarea:focus {
+        border-color: #3182ce;
+    }
+
+    .campo textarea { resize: none; }
+
+    .linha_dupla {
+        display: flex;
+        gap: 20px;
+        align-items: stretch;
+    }
+
+    .coluna_imagem,
+    .coluna_enunciado {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .area_imagem {
+        border: 2px dashed #aaa;
+        border-radius: 6px;
+        flex: 1;
+        min-height: 240px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        color: #777;
+        background: rgb(240, 245, 250);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .area_imagem:hover { border-color: #3182ce; color: #3182ce; }
+
+    .area_imagem input[type="file"] {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        cursor: pointer;
+    }
+
+    .area_imagem img {
+        max-width: 100%;
+        max-height: 100%;
+        display: none;
+        border-radius: 4px;
+    }
+
+    .icone_upload { font-size: 36px; margin-bottom: 8px; }
+
+    /* Textarea de enunciado que estica para igualar à área de imagem */
+    .coluna_enunciado textarea {
+        flex: 1;
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #ccc;
+        border-radius: 6px;
+        font-size: 15px;
+        font-family: Arial, Helvetica, sans-serif;
+        outline: none;
+        resize: none;
+        background: rgb(240, 245, 250);
+        min-height: 240px;
+    }
+
+    .coluna_enunciado textarea:focus { border-color: #3182ce; }
+
+    .botoes {
+        display: flex;
+        gap: 10px;
+        margin-top: 25px;
+        justify-content: flex-end;
+    }
+
+    .botoes button {
+        border: none;
+        padding: 12px 22px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 15px;
+        font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .cancelar { background: rgb(60,60,60); color: white; }
+    .cancelar:hover { background: rgb(40,40,40); }
+    .salvar { background: #3182ce; color: white; }
+    .salvar:hover { background: rgb(35,110,200); }
+    .postar { background: rgb(60,141,248); color: white; }
+    .postar:hover { background: rgb(40,120,220); }
+</style>
+</head>
+<body>
+<div class="pagina">
+
+    <header>
+        <h1>+Português</h1>
+        <input type="text" placeholder="Pesquisar questão...">
+    </header>
+
+    <main>
+        <div class="titulo_pagina">+ Adicionar questão dissertativa</div>
+
+        <div class="formulario">
+
+            <div class="campo">
+                <label for="titulo">Título</label>
+                <input type="text" id="titulo" placeholder="Digite o título da questão...">
+            </div>
+
+            <div class="campo">
+                <label for="genero">Gênero</label>
+                <select id="genero">
+                    <option value="" disabled selected>Selecione o gênero...</option>
+                    <option value="narrativo">Narrativo</option>
+                    <option value="argumentativo">Argumentativo</option>
+                    <option value="descritivo">Descritivo</option>
+                    <option value="expositivo">Expositivo</option>
+                    <option value="instrucional">Instrucional</option>
+                </select>
+            </div>
+
+            <div class="campo">
+                <label>Imagem e Enunciado</label>
+                <div class="linha_dupla">
+
+                    <div class="coluna_imagem">
+                        <div class="area_imagem">
+                            <input type="file" accept="image/*" onchange="previewImagem(event)">
+                            <div id="placeholder_upload">
+                                <div class="icone_upload">🖼️</div>
+                                <span>Clique para adicionar imagem</span>
+                            </div>
+                            <img id="preview_img" alt="Preview">
+                        </div>
+                    </div>
+
+                    <div class="coluna_enunciado">
+                        <textarea placeholder="Digite o enunciado da questão dissertativa..."></textarea>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="campo">
+                <label for="explicacao">Explicação</label>
+                <textarea id="explicacao" rows="4" placeholder="Digite a explicação ou gabarito esperado..."></textarea>
+            </div>
+
+            <div class="campo">
+                <label for="especificacao">Especificação</label>
+                <input type="text" id="especificacao" placeholder="Digite a especificação...">
+            </div>
+
+            <div class="campo">
+                <label for="subgenero">Subgênero</label>
+                <input type="text" id="subgenero" placeholder="Digite o subgênero...">
+            </div>
+
+            <div class="botoes">
+                <button class="cancelar" onclick="history.back()">Cancelar</button>
+                <button class="salvar">Salvar</button>
+                <button class="postar">Postar</button>
+            </div>
+
+        </div>
+    </main>
+
+</div>
+
+<script>
+    function previewImagem(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = document.getElementById('preview_img');
+                const placeholder = document.getElementById('placeholder_upload');
+                img.src = e.target.result;
+                img.style.display = 'block';
+                placeholder.style.display = 'none';
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+</script>
+</body>
+</html>
