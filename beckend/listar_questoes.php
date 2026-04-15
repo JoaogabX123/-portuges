@@ -1,17 +1,39 @@
 <?php
-session_start();
-header('Content-Type: application/json');
+/**
+ * LISTAR_QUESTOES.PHP
+ * Retorna lista de questões com filtros opcionais
+ */
 
-$arquivo = 'questoes.json';
-$questoes = file_exists($arquivo) ? json_decode(file_get_contents($arquivo), true) : [];
+require 'config.php';
+require 'helpers.php';
 
-$busca = $_GET['busca'] ?? '';
-
-if ($busca !== '') {
-    $questoes = array_filter($questoes, function($q) use ($busca) {
-        return (stripos($q['titulo'], $busca) !== false) || (stripos($q['enunciado'], $busca) !== false);
-    });
+try {
+    $busca = $_GET['busca'] ?? '';
+    $tipo = $_GET['tipo'] ?? '';
+    $status = $_GET['status'] ?? '';
+    $genero = $_GET['genero'] ?? '';
+    
+    $filtros = [];
+    if (!empty($tipo)) $filtros['tipo'] = $tipo;
+    if (!empty($status)) $filtros['status'] = $status;
+    if (!empty($genero)) $filtros['genero'] = $genero;
+    
+    $questoes = BancoQuestoes::listar($filtros);
+    
+    if (!empty($busca)) {
+        $questoes = array_filter($questoes, function($q) use ($busca) {
+            $busca = strtolower($busca);
+            return stripos(strtolower($q['titulo']), $busca) !== false ||
+                   stripos(strtolower($q['enunciado']), $busca) !== false;
+        });
+        $questoes = array_values($questoes);
+    }
+    
+    Resposta::sucesso([
+        'total' => count($questoes),
+        'questoes' => $questoes
+    ]);
+} catch (Exception $e) {
+    Resposta::erro('Erro ao listar questões: ' . $e->getMessage(), 500);
 }
-
-// Reindexar array e retornar
-echo json_encode(array_values($questoes));
+?>

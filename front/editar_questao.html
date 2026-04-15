@@ -76,7 +76,8 @@
         const res = await fetch(`${BASE}/buscar_questao.php?id=${encodeURIComponent(id)}`);
         if (!res.ok) { window.location.href = 'home_page.html'; return; }
 
-        questao = await res.json();
+        const resposta = await res.json();
+        questao = resposta.dados || resposta;
         renderFormulario(questao);
     });
 
