@@ -54,7 +54,8 @@
         const res = await fetch(`${BASE}/buscar_questao.php?id=${encodeURIComponent(id)}`);
         if (!res.ok) { window.location.href = 'home_page.html'; return; }
 
-        const q = await res.json();
+        const resposta = await res.json();
+        const q = resposta.dados || resposta;
         if (q.tipo !== 'objetiva') { window.location.href = `aba_questao_dissertativa.html?id=${id}`; return; }
 
         const sub = [q.especificacao, q.subgenero].filter(Boolean).join(' / ');

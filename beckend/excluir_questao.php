@@ -1,15 +1,34 @@
 <?php
-header('Content-Type: application/json');
-$dados = json_decode(file_get_contents('php://input'), true);
-$id = $dados['id'] ?? '';
+/**
+ * EXCLUIR_QUESTAO.PHP
+ * Deleta questão por ID
+ */
 
-$arquivo = 'questoes.json';
-if (file_exists($arquivo)) {
-    $questoes = json_decode(file_get_contents($arquivo), true);
-    $questoes = array_filter($questoes, function($q) use ($id) {
-        return $q['id'] != $id;
-    });
-    file_put_contents($arquivo, json_encode(array_values($questoes), JSON_PRETTY_PRINT));
+require 'config.php';
+require 'helpers.php';
+
+try {
+    $dados = obterDadosJSON();
+    $id = $dados['id'] ?? '';
+    
+    if (empty($id)) {
+        Resposta::erro('ID da questão é obrigatório', 400);
+    }
+    
+    $questao = BancoQuestoes::encontrarPorId($id);
+    
+    if (!$questao) {
+        Resposta::erro('Questão não encontrada', 404);
+    }
+    
+    if (!empty($questao['imagem'])) {
+        Upload::deletarImagem($questao['imagem']);
+    }
+    
+    BancoQuestoes::deletar($id);
+    
+    Resposta::sucesso(null, 'Questão deletada com sucesso');
+} catch (Exception $e) {
+    Resposta::erro('Erro ao excluir questão: ' . $e->getMessage(), 500);
 }
-
-echo json_encode(['ok' => true]);
+?>

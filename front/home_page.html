@@ -207,7 +207,8 @@
         const res   = await fetch(`${BASE}/listar_questoes.php?busca=${encodeURIComponent(busca)}`);
         if (!res.ok) { window.location.href = 'tela_de_login.html'; return; }
 
-        const questoes = await res.json();
+        const resposta = await res.json();
+        const questoes = resposta.dados?.questoes || [];
         const lista    = document.getElementById('lista');
 
         if (!questoes.length) {

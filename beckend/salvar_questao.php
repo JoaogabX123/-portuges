@@ -1,58 +1,90 @@
 <?php
-header('Content-Type: application/json');
+/**
+ * SALVAR_QUESTAO.PHP
+ * Cria ou atualiza questão com validação completa
+ */
 
-$arquivoJson = 'questoes.json';
-$questoes = file_exists($arquivoJson) ? json_decode(file_get_contents($arquivoJson), true) : [];
+require 'config.php';
+require 'helpers.php';
 
-$id = $_POST['id'] ?? uniqid();
-$tipo = $_POST['tipo'] ?? 'objetiva';
-$acao = $_POST['acao'] ?? 'salvar'; // 'salvar' ou 'postar'
-
-// Lógica de Upload de Imagem
-$caminhoImagem = $_POST['imagem_atual'] ?? '';
-if (isset($_FILES['imagem']) && $_FILES['imagem']['error'] === 0) {
-    if (!is_dir('uploads')) mkdir('uploads');
-    $ext = pathinfo($_FILES['imagem']['name'], PATHINFO_EXTENSION);
-    $nomeImg = uniqid() . "." . $ext;
-    move_uploaded_file($_FILES['imagem']['tmp_name'], 'uploads/' . $nomeImg);
-    $caminhoImagem = 'uploads/' . $nomeImg;
-}
-
-$novaQuestao = [
-    'id' => $id,
-    'tipo' => $tipo,
-    'status' => ($acao === 'postar' ? 'publicada' : 'rascunho'),
-    'titulo' => $_POST['titulo'] ?? '',
-    'genero' => $_POST['genero'] ?? '',
-    'enunciado' => $_POST['enunciado'] ?? '',
-    'explicacao' => $_POST['explicacao'] ?? '',
-    'especificacao' => $_POST['especificacao'] ?? '',
-    'subgenero' => $_POST['subgenero'] ?? '',
-    'imagem' => $caminhoImagem
-];
-
-if ($tipo === 'objetiva') {
-    $novaQuestao['correta'] = $_POST['correta'] ?? '';
-    $novaQuestao['alternativas'] = [
-        'A' => $_POST['alt_A'] ?? '',
-        'B' => $_POST['alt_B'] ?? '',
-        'C' => $_POST['alt_C'] ?? '',
-        'D' => $_POST['alt_D'] ?? '',
-        'E' => $_POST['alt_E'] ?? '',
+try {
+    $id = $_POST['id'] ?? '';
+    $tipo = $_POST['tipo'] ?? 'objetiva';
+    $acao = $_POST['acao'] ?? 'salvar';
+    
+    $erros = validarQuestao($_POST);
+    if (!empty($erros)) {
+        Resposta::validacao($erros);
+    }
+    
+    $caminhoImagem = $_POST['imagem_atual'] ?? '';
+    if (isset($_FILES['imagem']) && $_FILES['imagem']['error'] !== UPLOAD_ERR_NO_FILE) {
+        $resultado = Upload::validarESalvarImagem($_FILES['imagem']);
+        
+        if (isset($resultado['erro'])) {
+            Resposta::erro($resultado['erro'], 400);
+        }
+        
+        $caminhoImagem = $resultado['caminho'];
+        
+        if (!empty($_POST['imagem_atual']) && $_POST['imagem_atual'] !== $caminhoImagem) {
+            Upload::deletarImagem($_POST['imagem_atual']);
+        }
+    }
+    
+    $status = ($acao === 'postar') ? 'publicada' : 'rascunho';
+    
+    $dadosQuestao = [
+        'id' => $id,
+        'tipo' => $tipo,
+        'status' => $status,
+        'titulo' => $_POST['titulo'],
+        'genero' => $_POST['genero'],
+        'enunciado' => $_POST['enunciado'],
+        'explicacao' => $_POST['explicacao'] ?? '',
+        'especificacao' => $_POST['especificacao'] ?? '',
+        'subgenero' => $_POST['subgenero'] ?? '',
+        'imagem' => $caminhoImagem
     ];
+    
+    if ($tipo === 'objetiva') {
+        $dadosQuestao['correta'] = $_POST['correta'];
+        $dadosQuestao['alternativas'] = [
+            'A' => $_POST['alt_A'],
+            'B' => $_POST['alt_B'],
+            'C' => $_POST['alt_C'],
+            'D' => $_POST['alt_D'],
+            'E' => $_POST['alt_E']
+        ];
+    }
+    
+    foreach ($dadosQuestao as $chave => &$valor) {
+        if (is_string($valor)) {
+            $valor = sanitizarTexto($valor);
+        } elseif (is_array($valor) && $chave === 'alternativas') {
+            foreach ($valor as &$alt) {
+                $alt = sanitizarTexto($alt);
+            }
+        }
+    }
+    
+    if (!empty($id)) {
+        $questaoExistente = BancoQuestoes::encontrarPorId($id);
+        if ($questaoExistente) {
+            if (empty($caminhoImagem) && !empty($questaoExistente['imagem'])) {
+                $dadosQuestao['imagem'] = $questaoExistente['imagem'];
+            }
+            BancoQuestoes::atualizar($id, $dadosQuestao);
+        } else {
+            BancoQuestoes::adicionar($dadosQuestao);
+        }
+    } else {
+        $dadosQuestao['id'] = gerarId();
+        BancoQuestoes::adicionar($dadosQuestao);
+    }
+    
+    Resposta::sucesso(['id' => $dadosQuestao['id']], 'Questão salva com sucesso');
+} catch (Exception $e) {
+    Resposta::erro('Erro ao salvar questão: ' . $e->getMessage(), 500);
 }
-
-// Atualizar se existir, senão adicionar
-$index = -1;
-foreach ($questoes as $i => $q) {
-    if ($q['id'] == $id) { $index = $i; break; }
-}
-
-if ($index !== -1) {
-    $questoes[$index] = $novaQuestao;
-} else {
-    $questoes[] = $novaQuestao;
-}
-
-file_put_contents($arquivoJson, json_encode($questoes, JSON_PRETTY_PRINT));
-echo json_encode(['ok' => true]);
+?>

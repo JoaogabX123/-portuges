@@ -1,12 +1,35 @@
 <?php
-session_start();
-header('Content-Type: application/json');
+/**
+ * LOGIN.PHP
+ * Autentica usuário com email e senha
+ */
 
-$dados = json_decode(file_get_contents('php://input'), true);
+require 'config.php';
+require 'helpers.php';
 
-if ($dados['email'] === 'admin@admin.com' && $dados['senha'] === '123') {
-    $_SESSION['usuario'] = $dados['email'];
-    echo json_encode(['ok' => true]);
-} else {
-    echo json_encode(['ok' => false, 'erro' => 'E-mail ou senha inválidos!']);
+try {
+    session_start();
+    
+    $dados = obterDadosJSON();
+    
+    if (empty($dados['email']) || empty($dados['senha'])) {
+        Resposta::erro('Email e senha são obrigatórios', 400);
+    }
+    
+    $email = sanitizarTexto($dados['email']);
+    $senha = $dados['senha'];
+    
+    // TODO: Integrar com banco de dados
+    if ($email === 'admin@admin.com' && $senha === '123') {
+        $_SESSION['usuario_id'] = 1;
+        $_SESSION['usuario_email'] = $email;
+        $_SESSION['login_time'] = time();
+        
+        Resposta::sucesso(null, 'Login realizado com sucesso');
+    } else {
+        Resposta::erro('Email ou senha inválidos', 401);
+    }
+} catch (Exception $e) {
+    Resposta::erro('Erro no servidor: ' . $e->getMessage(), 500);
 }
+?>
