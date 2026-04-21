@@ -42,21 +42,21 @@
     </div>
 </main>
 
-<button class="add" onclick="window.location='home_page.html'">+ Adicionar questão</button>
+<button class="add" onclick="window.location='home_page.php'">+ Adicionar questão</button>
 
 <script>
     const BASE = '../beckend';
     const id   = new URLSearchParams(window.location.search).get('id');
 
     window.addEventListener('DOMContentLoaded', async () => {
-        if (!id) { window.location.href = 'home_page.html'; return; }
+        if (!id) { window.location.href = 'home_page.php'; return; }
 
         const res = await fetch(`${BASE}/buscar_questao.php?id=${encodeURIComponent(id)}`);
-        if (!res.ok) { window.location.href = 'home_page.html'; return; }
+        if (!res.ok) { window.location.href = 'home_page.php'; return; }
 
         const resposta = await res.json();
         const q = resposta.dados || resposta;
-        if (q.tipo !== 'objetiva') { window.location.href = `aba_questao_dissertativa.html?id=${id}`; return; }
+        if (q.tipo !== 'objetiva') { window.location.href = `aba_questao_dissertativa.php?id=${id}`; return; }
 
         const sub = [q.especificacao, q.subgenero].filter(Boolean).join(' / ');
         const imgTag = q.imagem

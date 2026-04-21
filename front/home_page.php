@@ -169,8 +169,8 @@
     <div class="modal">
         <h2>Qual tipo de questão?</h2>
         <div class="modal-botoes">
-            <a href="criacao_de_questao_objetiva.html">Objetiva</a>
-            <a href="criacao_de_questao_dissertativa.html">Dissertativa</a>
+            <a href="criacao_de_questao_objetiva.php">Objetiva</a>
+            <a href="criacao_de_questao_dissertativa.php">Dissertativa</a>
         </div>
         <button class="modal-fechar"
                 onclick="document.getElementById('modal_tipo').classList.remove('ativo')">
@@ -185,7 +185,7 @@
     // Verifica sessão ao carregar
     window.addEventListener('DOMContentLoaded', async () => {
         const res = await fetch(`${BASE}/sessao.php`);
-        if (!res.ok) { window.location.href = 'tela_de_login.html'; return; }
+        if (!res.ok) { window.location.href = 'tela_de_login.php'; return; }
 
         // Exibe aviso se veio de outra página
         const params = new URLSearchParams(window.location.search);
@@ -205,7 +205,7 @@
     async function carregarQuestoes() {
         const busca = document.getElementById('campo_busca').value;
         const res   = await fetch(`${BASE}/listar_questoes.php?busca=${encodeURIComponent(busca)}`);
-        if (!res.ok) { window.location.href = 'tela_de_login.html'; return; }
+        if (!res.ok) { window.location.href = 'tela_de_login.php'; return; }
 
         const resposta = await res.json();
         const questoes = resposta.dados?.questoes || [];
@@ -231,7 +231,7 @@
 
     async function fazerLogout() {
         await fetch(`${BASE}/logout.php`);
-        window.location.href = 'tela_de_login.html';
+        window.location.href = 'tela_de_login.php';
     }
 </script>
 </body>
