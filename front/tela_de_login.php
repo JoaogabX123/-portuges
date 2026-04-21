@@ -74,7 +74,7 @@
             const data = await res.json();
 
             if (data.ok) {
-                window.location.href = 'home_page.html';
+                window.location.href = 'home_page.php';
             } else {
                 const el = document.getElementById('msg_erro');
                 el.textContent = data.erro;
