@@ -8,12 +8,18 @@ require 'config.php';
 require 'helpers.php';
 
 try {
+    // Verificar autenticação
+    verificarAutenticacao();
+    
     $dados = obterDadosJSON();
     $id = $dados['id'] ?? '';
     
     if (empty($id)) {
         Resposta::erro('ID da questão é obrigatório', 400);
     }
+    
+    // Converter para inteiro
+    $id = intval($id);
     
     $questao = BancoQuestoes::encontrarPorId($id);
     

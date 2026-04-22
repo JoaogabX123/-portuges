@@ -21,6 +21,9 @@ try {
         Resposta::erro('ID da questão é obrigatório', 400);
     }
     
+    // Converter para inteiro para MySQLi
+    $id = intval($id);
+    
     $questao = BancoQuestoes::encontrarPorId($id);
     
     if (!$questao) {

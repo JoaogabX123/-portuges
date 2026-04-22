@@ -8,6 +8,9 @@ require 'config.php';
 require 'helpers.php';
 
 try {
+    // Verificar autenticação
+    verificarAutenticacao();
+    
     $id = $_POST['id'] ?? '';
     $tipo = $_POST['tipo'] ?? 'objetiva';
     $acao = $_POST['acao'] ?? 'salvar';
@@ -35,7 +38,6 @@ try {
     $status = ($acao === 'postar') ? 'publicada' : 'rascunho';
     
     $dadosQuestao = [
-        'id' => $id,
         'tipo' => $tipo,
         'status' => $status,
         'titulo' => $_POST['titulo'],
@@ -74,16 +76,16 @@ try {
             if (empty($caminhoImagem) && !empty($questaoExistente['imagem'])) {
                 $dadosQuestao['imagem'] = $questaoExistente['imagem'];
             }
-            BancoQuestoes::atualizar($id, $dadosQuestao);
+            $questaoAtualizada = BancoQuestoes::atualizar($id, $dadosQuestao);
+            Resposta::sucesso(['id' => $questaoAtualizada['id']], 'Questão atualizada com sucesso');
         } else {
-            BancoQuestoes::adicionar($dadosQuestao);
+            $questaoNova = BancoQuestoes::adicionar($dadosQuestao);
+            Resposta::sucesso(['id' => $questaoNova['id']], 'Questão salva com sucesso');
         }
     } else {
-        $dadosQuestao['id'] = gerarId();
-        BancoQuestoes::adicionar($dadosQuestao);
+        $questaoNova = BancoQuestoes::adicionar($dadosQuestao);
+        Resposta::sucesso(['id' => $questaoNova['id']], 'Questão criada com sucesso');
     }
-    
-    Resposta::sucesso(['id' => $dadosQuestao['id']], 'Questão salva com sucesso');
 } catch (Exception $e) {
     Resposta::erro('Erro ao salvar questão: ' . $e->getMessage(), 500);
 }
