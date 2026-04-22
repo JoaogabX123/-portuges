@@ -8,6 +8,9 @@ require 'config.php';
 require 'helpers.php';
 
 try {
+    // Verificar autenticação (opcional, mas recomendado)
+    // verificarAutenticacao();
+    
     $busca = $_GET['busca'] ?? '';
     $tipo = $_GET['tipo'] ?? '';
     $status = $_GET['status'] ?? '';
@@ -23,8 +26,8 @@ try {
     if (!empty($busca)) {
         $questoes = array_filter($questoes, function($q) use ($busca) {
             $busca = strtolower($busca);
-            return stripos(strtolower($q['titulo']), $busca) !== false ||
-                   stripos(strtolower($q['enunciado']), $busca) !== false;
+            return stripos(strtolower($q['titulo'] ?? ''), $busca) !== false ||
+                   stripos(strtolower($q['enunciado'] ?? ''), $busca) !== false;
         });
         $questoes = array_values($questoes);
     }
