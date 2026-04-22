@@ -1,103 +1,269 @@
-# 📚 +Português
+# 📚 +Português - Gerenciador de Questões
 
-Uma plataforma moderna para professores gerenciarem, organizarem e reutilizarem suas questões de forma eficiente.
+Uma plataforma robusta para professores gerenciarem, organizarem e reutilizarem suas questões de forma eficiente com banco de dados centralizado.
 
 ## 🎯 Objetivo
 
 Criar uma solução inteligente que permite professores de todas as categorias de ensino:
-- **Centralizar** todas as suas questões em um único lugar
-- **Organizar** questões por matéria, tipo, gênero e assunto customizado
+- **Centralizar** todas as suas questões em um único lugar (banco de dados MySQL)
+- **Organizar** questões por gênero textual, tipo e especificações
 - **Filtrar** questões através de filtros customizados avançados
 - **Reutilizar** questões em diferentes avaliações e contextos
-- **Gerenciar** versões e histórico de questões
+- **Gerenciar** histórico e status de questões (rascunho/publicada)
 
 ---
 
-## ✨ Funcionalidades Principais
+## ✨ Funcionalidades Implementadas
 
 ### 🔐 Autenticação & Segurança
-- Sistema de autenticação com email/senha
-- Validação de email
-- Tokens JWT para sessões seguras
-- Soft delete para preservar histórico
+- ✅ Sistema de autenticação com email/senha
+- ✅ Hash seguro de senhas com `password_hash()`
+- ✅ Sessões PHP para manter usuário logado
+- ✅ Logout funcional
+- ✅ Usuário admin pré-criado (admin@admin.com / 123)
 
 ### 📋 Gerenciamento de Questões
-- Criar, editar, visualizar e deletar questões
-- Suporte para múltiplos tipos:
-  - Questões Objetivas (múltipla escolha)
-  - Questões Discursivas
-  - Questões Dissertativas
-- Marcar questões favoritas
-- Histórico de modificações
+- ✅ Criar questões (objetivas e dissertativas)
+- ✅ Editar questões existentes
+- ✅ Visualizar todas as questões
+- ✅ Deletar questões
+- ✅ Buscar questões por título/texto
+- ✅ Filtrar por tipo, gênero e status
+- ✅ Upload de imagens para questões
+- ✅ Explicação detalhada para cada questão
 
-### 🏷️ Organização Inteligente
-- **Estrutura hierárquica**: Matéria → Gênero → Assunto
-- Criar categorias e filtros customizados
-- Filtro rápido por matéria, tipo e dificuldade
-- Busca avançada de questões
+### 🏷️ Tipos de Questões
+- **Questões Objetivas (Múltipla Escolha)**
+  - 5 alternativas (A, B, C, D, E)
+  - Resposta correta definida
+  - Alternativas armazenadas em tabela separada
+  
+- **Questões Dissertativas**
+  - Enunciado e orientações para resposta
+  - Explicação sobre a questão
 
-### 📊 Dashboard
-- Visualização intuitiva de todas as questões
-- Estatísticas sobre questões criadas
-- Acesso rápido a questões recentes
+### 📊 Organização de Conteúdo
+- **Gêneros textuais**: Narrativo, Argumentativo, Descritivo, Expositivo, Instrucional
+- **Status**: Rascunho ou Publicada
+- **Especificação**: Categorização customizada
+- **Subgênero**: Subcategorias específicas
 
 ---
 
 ## 🛠️ Tech Stack
 
 ### Frontend
-- **React** + Vite
-- **CSS** para estilização responsiva
-- **JavaScript** moderno (ES6+)
+- **HTML5** + **CSS3**
+- **JavaScript** (Vanilla JS)
+- **PHP** para renderização de templates
 
 ### Backend
-- **Node.js / Python** (a ser definido)
-- **API RESTful**
-- **JWT** para autenticação
+- **PHP 7.4+** com **MySQLi**
+- **API via PHP (endpoints HTTP)**
+- **Sessões PHP** para autenticação
 
 ### Banco de Dados
-- **PostgreSQL / MySQL / MongoDB** (a ser definido)
-- **Schema relacional** para hierarquia de matérias/assuntos
+- **MySQL 5.7+** ou **MariaDB**
+- **3 tabelas principais**:
+  - `usuarios` - Autenticação
+  - `questoes` - Armazenamento de questões
+  - `alternativas_objetivas` - Alternativas das questões múltipla escolha
 
 ---
 
-## 📦 Instalação
+## 📦 Instalação & Configuração
 
 ### Pré-requisitos
-- Node.js v16+ ou Python 3.8+
-- npm ou pip
+- PHP 7.4+
+- MySQL/MariaDB
+- Servidor HTTP (Apache/Nginx) ou PHP built-in
 - Git
 
-### Setup Frontend
+### Passo 1: Clonar/Acessar o Repositório
 
 ```bash
-# Clonar repositório
-git clone https://github.com/seu-usuario/banco-questoes.git
-cd banco-questoes
-
-# Instalar dependências
-npm install
-
-# Iniciar servidor de desenvolvimento
-npm run dev
+cd portuges-feature-databese
 ```
 
-### Setup Backend
+### Passo 2: Criar Banco de Dados
 
 ```bash
-# Instalar dependências (Python)
-pip install -r requirements.txt
+# Via phpMyAdmin:
+1. Acesse http://localhost/phpmyadmin
+2. Clique em "Nova" para criar novo banco
+3. Nome do banco: `mais_portugues`
+4. Charset: utf8mb4_general_ci
+5. Clique em "Criar"
+```
 
-# Ou (Node.js)
-npm install
+### Passo 3: Importar Schema
 
-# Configurar banco de dados
-# Adicionar variáveis de ambiente em .env
+```bash
+# Via phpMyAdmin:
+1. Selecione o banco `mais_portugues`
+2. Vá para a aba "Importar"
+3. Selecione: database/mais_portugues_corrigido.sql
+4. Clique em "Executar"
+```
 
-# Iniciar servidor
-python app.py
-# Ou
-npm start
+**OU via linha de comando:**
+
+```bash
+mysql -u root -p mais_portugues < database/mais_portugues_corrigido.sql
+```
+
+### Passo 4: Verificar Configuração
+
+Edite `database/config.php` com suas credenciais MySQL:
+
+```php
+$servername = "localhost";
+$usuario = "root";
+$senha = "sua_senha_aqui";  // Modifique se necessário
+$banco = "mais_portugues";
+```
+
+### Passo 5: Iniciar o Servidor
+
+```bash
+# Via PHP built-in (para desenvolvimento)
+php -S localhost:8000
+
+# Ou acesse via Apache/Nginx
+http://localhost/caminho/para/projeto
+```
+
+---
+
+## 🔐 Credenciais Padrão
+
+### Usuário Admin (já inserido no banco)
+- **Email**: `admin@admin.com`
+- **Senha**: `123`
+
+---
+
+## 📁 Estrutura do Projeto
+
+```
+portuges-feature-databese/
+├── beckend/                    # Backend PHP
+│   ├── config.php             # Configurações globais
+│   ├── helpers.php            # Classe BancoQuestoes (migrada para MySQL)
+│   ├── sessao.php             # Gerenciamento de sessão
+│   ├── login.php              # Autenticação
+│   ├── logout.php             # Saída do sistema
+│   ├── salvar_questao.php     # Criar/editar questões
+│   ├── listar_questoes.php    # Listar questões com filtros
+│   ├── buscar_questao.php     # Busca por ID
+│   ├── excluir_questao.php    # Deletar questões
+│   ├── questoes.json          # [Legado] Já não utilizado
+│   ├── uploads/               # Pasta para imagens das questões
+│   └── verificacao.php        # Verificações auxiliares
+│
+├── database/                   # Banco de Dados
+│   ├── config.php             # Conexão MySQL (corrigido)
+│   └── mais_portugues_corrigido.sql  # Schema atualizado
+│
+├── front/                      # Frontend
+│   ├── tela_de_login.php      # Página de login
+│   ├── home_page.php          # Dashboard principal
+│   ├── criacao_de_questao_objetiva.php
+│   ├── criacao_de_questao_dissertativa.php
+│   ├── editar_questao.php
+│   ├── aba_questao_objetiva.php
+│   ├── aba_questao_dissertativa.php
+│   ├── css/                    # Estilos
+│   └── js/                     # Scripts JavaScript
+│
+├── README.md                   # Este arquivo
+├── INSTALACAO.md              # Guia detalhado de instalação
+├── README_CORRECCOES.md       # Histórico de correções
+└── TESTE_API.md               # Exemplos de requisições
+```
+
+---
+
+## 🗄️ Estrutura do Banco de Dados
+
+### Tabela: `usuarios`
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| id | INT (PK) | ID único auto-incremental |
+| email | VARCHAR UNIQUE | Email para login |
+| senha | VARCHAR | Hash da senha |
+| nome | VARCHAR | Nome do usuário |
+| tipo | ENUM | 'professor' ou 'admin' |
+| status | TINYINT | 0=inativo, 1=ativo |
+| criado_em | TIMESTAMP | Data de criação |
+| ultimo_login | DATETIME | Último acesso |
+
+### Tabela: `questoes`
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| id | INT (PK) | ID único auto-incremental |
+| titulo | VARCHAR | Título da questão |
+| tipo | ENUM | 'objetiva' ou 'dissertativa' |
+| status | ENUM | 'rascunho' ou 'publicada' |
+| genero | ENUM | Gênero textual |
+| subgenero | VARCHAR | Subcategoria |
+| especificacao | VARCHAR | Especificação customizada |
+| enunciado | LONGTEXT | Texto da questão |
+| explicacao | LONGTEXT | Explicação da resposta |
+| resposta_correta | CHAR | 'A' a 'E' (NULL para dissertativas) |
+| imagem | VARCHAR | Caminho da imagem |
+| id_usuario_criador | INT (FK) | Referência ao usuário criador |
+| criado_em | TIMESTAMP | Data de criação |
+| atualizado_em | TIMESTAMP | Última atualização |
+
+### Tabela: `alternativas_objetivas`
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| id | INT (PK) | ID único auto-incremental |
+| id_questao | INT (FK) | Referência à questão |
+| alternativa | CHAR | 'A', 'B', 'C', 'D' ou 'E' |
+| texto | LONGTEXT | Texto da alternativa |
+| criado_em | TIMESTAMP | Data de criação |
+
+---
+
+## 🔄 Status do Desenvolvimento
+
+### ✅ Concluído
+- [x] Schema MySQL simplificado e corrigido
+- [x] Backend PHP com MySQLi funcional
+- [x] Autenticação (login/logout)
+- [x] CRUD completo de questões
+- [x] Suporte a questões objetivas (com alternativas A-E)
+- [x] Suporte a questões dissertativas
+- [x] Upload de imagens
+- [x] Busca e filtros
+- [x] Frontend com interface intuitiva
+- [x] Classe BancoQuestoes migrada para MySQL
+
+### 🔄 Em Progresso
+- [ ] Testes completos da API
+- [ ] Documentação de endpoints
+- [ ] Sistema de categorias/matérias adicional
+- [ ] Filtros avançados melhorados
+- [ ] Estatísticas e relatórios
+
+### 📋 Planejado
+- [ ] Exportação de questões (PDF)
+- [ ] Importação em lote
+- [ ] Sistema de versioning de questões
+- [ ] Compartilhamento entre professores
+- [ ] Interface responsiva mobile
+- [ ] API RESTful documentada (Swagger)
+
+---
+
+## 📞 Suporte
+
+Para testes e documentação detalhada de endpoints, consulte:
+- **INSTALACAO.md** - Guia passo a passo
+- **README_CORRECCOES.md** - Histórico de mudanças
+- **TESTE_API.md** - Exemplos de requisições cURL
 ```
 
 ---
