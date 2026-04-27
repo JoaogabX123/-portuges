@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>+Português – Login</title>
+    <style>
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background-image: linear-gradient(30deg, cyan, rgb(35, 115, 235));
+        }
+        .login-box {
+            background-color: rgba(0, 0, 0, 0.8);
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 50px 40px;
+            border-radius: 15px;
+            color: aliceblue;
+            width: 300px;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        input[type="email"],
+        input[type="password"] {
+            display: block;
+            padding: 15px;
+            border: none;
+            outline: none;
+            font-size: 15px;
+            width: 100%;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            box-sizing: border-box;
+        }
+        .linha-lembrar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            font-size: 12px;
+        }
+        .linha-lembrar label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            color: #ccc;
+        }
+        .linha-lembrar input[type="checkbox"] {
+            width: auto;
+            margin: 0;
+            cursor: pointer;
+            accent-color: rgb(82, 202, 250);
+        }
+        .linha-lembrar a {
+            color: rgb(82, 202, 250);
+            text-decoration: none;
+        }
+        .linha-lembrar a:hover { text-decoration: underline; }
+        button {
+            background-color: rgb(82, 202, 250);
+            border: none;
+            padding: 15px;
+            width: 100%;
+            border-radius: 5px;
+            font-size: 15px;
+            cursor: pointer;
+            box-sizing: border-box;
+            margin-bottom: 22px;
+        }
+        button:hover { background-color: rgb(60, 141, 248); color: white; }
+        .divisor {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 18px;
+            color: #555;
+            font-size: 12px;
+        }
+        .divisor::before,
+        .divisor::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: #444;
+        }
+        .cadastro {
+            text-align: center;
+            font-size: 13px;
+            color: #aaa;
+        }
+        .cadastro a {
+            color: rgb(82, 202, 250);
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .cadastro a:hover { text-decoration: underline; }
+        .erro {
+            background: rgba(200, 50, 50, 0.85);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            text-align: center;
+            font-size: 13px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-box">
+        <h1>Login</h1>
+        <div class="erro" id="msg_erro"></div>
+
+        <input type="email" id="email" placeholder="E-mail">
+        <input type="password" id="senha" placeholder="Senha">
+
+        <div class="linha-lembrar">
+            <label>
+                <input type="checkbox" id="lembrar"> Lembrar de mim
+            </label>
+            <a href="esqueci_senha.html">Esqueci minha senha</a>
+        </div>
+
+        <button onclick="fazerLogin()">Entrar</button>
+
+        <div class="divisor">ou</div>
+
+        <div class="cadastro">
+            Não tem uma conta? <a href="cadastro.html">Cadastre-se aqui</a>
+        </div>
+    </div>
+
+    <script>
+        const BASE = '../beckend';
+
+        async function fazerLogin() {
+            const email = document.getElementById('email').value.trim();
+            const senha = document.getElementById('senha').value.trim();
+
+            const res  = await fetch(`${BASE}/login.php`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, senha })
+            });
+            const data = await res.json();
+
+            if (data.ok) {
+                window.location.href = 'home_page.html';
+            } else {
+                const el = document.getElementById('msg_erro');
+                el.textContent = data.erro;
+                el.style.display = 'block';
+            }
+        }
+
+        // Permite pressionar Enter para logar
+        document.addEventListener('keydown', e => { if (e.key === 'Enter') fazerLogin(); });
+    </script>
+</body>
+</html>
