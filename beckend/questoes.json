@@ -1,0 +1,54 @@
+[
+    {
+        "id": "69dbf9ed25223",
+        "tipo": "objetiva",
+        "status": "rascunho",
+        "titulo": "aaaaaaaaaaaaaaaaa",
+        "genero": "argumentativo",
+        "enunciado": "aaaa",
+        "explicacao": "aaaa",
+        "especificacao": "aaa",
+        "subgenero": "",
+        "imagem": "uploads\/69dbf9ed25761.png",
+        "correta": "",
+        "alternativas": {
+            "A": "a",
+            "B": "b",
+            "C": "css",
+            "D": "d",
+            "E": "e"
+        }
+    },
+    {
+        "id": "69dbfa07abe75",
+        "tipo": "objetiva",
+        "status": "rascunho",
+        "titulo": "",
+        "genero": "",
+        "enunciado": "",
+        "explicacao": "",
+        "especificacao": "",
+        "subgenero": "",
+        "imagem": "",
+        "correta": "",
+        "alternativas": {
+            "A": "",
+            "B": "",
+            "C": "",
+            "D": "",
+            "E": ""
+        }
+    },
+    {
+        "id": "69dbfa10c1846",
+        "tipo": "dissertativa",
+        "status": "rascunho",
+        "titulo": "",
+        "genero": "",
+        "enunciado": "",
+        "explicacao": "asas",
+        "especificacao": "asasa",
+        "subgenero": "asas",
+        "imagem": ""
+    }
+]
