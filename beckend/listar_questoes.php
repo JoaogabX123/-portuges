@@ -15,8 +15,8 @@ require 'config.php';
 require 'helpers.php';
 
 try {
-    // Verificar autenticação (opcional, mas recomendado)
-    // verificarAutenticacao();
+    // Verificar autenticação e obter ID do usuário
+    $id_usuario = verificarAutenticacao();
     
     $busca = $_GET['busca'] ?? '';
     $tipo = $_GET['tipo'] ?? '';
@@ -24,6 +24,7 @@ try {
     $genero = $_GET['genero'] ?? '';
     
     $filtros = [];
+    $filtros['id_usuario_criador'] = $id_usuario;  // FILTRO obrigatório por usuário
     if (!empty($tipo)) $filtros['tipo'] = $tipo;
     if (!empty($status)) $filtros['status'] = $status;
     if (!empty($genero)) $filtros['genero'] = $genero;

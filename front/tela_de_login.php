@@ -1,3 +1,11 @@
+<?php
+    session_start();
+    // Se já está logado, redireciona para home
+    if (isset($_SESSION['usuario_id'])) {
+        header('Location: home_page.php');
+        exit;
+    }
+?>
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -68,6 +76,7 @@
 
             const res  = await fetch(`${BASE}/login.php`, {
                 method: 'POST',
+                credentials: 'include',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, senha })
             });

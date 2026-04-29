@@ -10,6 +10,7 @@ Criar uma solução inteligente que permite professores de todas as categorias d
 - **Filtrar** questões através de filtros customizados avançados
 - **Reutilizar** questões em diferentes avaliações e contextos
 - **Gerenciar** histórico e status de questões (rascunho/publicada)
+- **Isolar dados** - Cada usuário vê apenas suas próprias questões
 
 ---
 
@@ -20,12 +21,14 @@ Criar uma solução inteligente que permite professores de todas as categorias d
 - ✅ Hash seguro de senhas com `password_hash()`
 - ✅ Sessões PHP para manter usuário logado
 - ✅ Logout funcional
-- ✅ Usuário admin pré-criado (admin@admin.com / 123)
+- ✅ **Isolamento de dados por usuário** (cada usuário vê APENAS suas questões)
+- ✅ Suporte a cookies via `credentials: 'include'` em requisições fetch
+- ✅ Múltiplos usuários (professor/admin)
 
 ### 📋 Gerenciamento de Questões
 - ✅ Criar questões (objetivas e dissertativas)
 - ✅ Editar questões existentes
-- ✅ Visualizar todas as questões
+- ✅ Visualizar todas as questões do usuário
 - ✅ Deletar questões
 - ✅ Buscar questões por título/texto
 - ✅ Filtrar por tipo, gênero e status

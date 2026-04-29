@@ -363,6 +363,13 @@ class BancoQuestoes {
         $tipos = "";
         $params = [];
         
+        // Filtro OBRIGATÓRIO: apenas questões do usuário logado
+        if (!empty($filtros['id_usuario_criador'])) {
+            $query .= " AND id_usuario_criador = ?";
+            $tipos .= "i";
+            $params[] = $filtros['id_usuario_criador'];
+        }
+        
         // Filtro por tipo
         if (!empty($filtros['tipo'])) {
             $query .= " AND tipo = ?";

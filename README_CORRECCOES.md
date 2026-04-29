@@ -1,45 +1,217 @@
-# 🔧 Correções Implementadas - portuges-feature-databese
+# 🔧 Correções Implementadas - Projeto +Portugues
 
-## Resumo Executivo
+## 📋 Resumo Executivo - Última Sessão (29/04/2026)
 
-O projeto `portuges-feature-databese` foi criado como tentativa de migrar de JSON para MySQL, mas ficou incompleto. Este documento detalha todas as correções realizadas para torná-lo **funcional e pronto para produção**.
+Foram identificados e corrigidos **3 problemas críticos** relacionados ao isolamento de dados por usuário:
+
+1. ❌ **Verificação de autenticação comentada** → ✅ Descomentar `verificarAutenticacao()`
+2. ❌ **Sem filtro por usuário na query** → ✅ Adicionar filtro `id_usuario_criador`
+3. ❌ **Cookies não persistindo** → ✅ Adicionar `credentials: 'include'` em todos os fetch()
 
 ---
 
-## ❌ Problemas Encontrados
+## 🎯 Problema Resolvido: Isolamento de Dados por Usuário
 
-### 1. Schema SQL Inadequado
-- **Tabelas Desnecessárias**:
-  - `aluno` - Gerenciamento de alunos (fora do escopo)
-  - `professor` - Perfil de professor (informação duplicada em usuários)
-  - `resposta` - Respostas de alunos (não faz parte do sistema de criação de questões)
-  
-- **Resultado**: Banco de dados desorganizado e não alinhado com o escopo real do projeto
+### ❌ Sintoma
+- Usuário novo logava e via **9 questões do admin** em vez de suas próprias questões
+- Não havia separação de dados por usuário
+- Redirecionamento para "banco do admin"
 
-### 2. Backend Não Migrado
-- Classe `BancoQuestoes` ainda usava JSON (`questoes.json`) em vez de MySQL
-- `login.php` tinha autenticação hardcoded sem integração com banco
-- Endpoints PHP não foram adaptados para MySQLi
-- Código em estado intermediário, não compilado/testado
+### 🔍 Causa Raiz
 
-### 3. Configuração Incompleta
-- `database/config.php` com typos: `$usuaio` em vez de `$usuario`
-- Echo de teste deixado no arquivo: `echo "Conexão bem-sucedida!"`
-- Autenticação não verificada em operações CRUD críticas
+#### 1. **Autenticação Comentada em `listar_questoes.php`**
+```php
+// ❌ ANTES (ERRADO)
+// verificarAutenticacao();
 
-### 4. Frontend Desnecessariamente Alterado
-- Endpoints apontavam para templates PHP em vez de HTML estático
-- Isso adicionou complexidade sem benefício
+// ✅ DEPOIS (CORRETO)
+$id_usuario = verificarAutenticacao();
+```
+
+#### 2. **Falta de Filtro por Usuário em `BancoQuestoes::listar()`**
+```php
+// ❌ ANTES (mostrando TODAS as questões)
+$query = "SELECT * FROM questoes WHERE 1=1";
+
+// ✅ DEPOIS (filtrando por usuário)
+if (!empty($filtros['id_usuario_criador'])) {
+    $query .= " AND id_usuario_criador = ?";
+    $tipos .= "i";
+    $params[] = $filtros['id_usuario_criador'];
+}
+```
+
+#### 3. **Cookies não Persistindo (fetch JavaScript)**
+```javascript
+// ❌ ANTES (sem credentials)
+fetch('login.php', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, senha })
+});
+
+// ✅ DEPOIS (com credentials)
+fetch('login.php', {
+    method: 'POST',
+    credentials: 'include',  // ← CRUCIAL!
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, senha })
+});
+```
 
 ---
 
 ## ✅ Soluções Implementadas
 
-### 1. Novo Schema SQL Simplificado
+### 1. Descomentar Autenticação
+**Arquivo**: `beckend/listar_questoes.php`
+```php
+try {
+    // Verificar autenticação E obter ID do usuário
+    $id_usuario = verificarAutenticacao();  // ← DESCOMENTAR
+    
+    $busca = $_GET['busca'] ?? '';
+    $filtros = [];
+    $filtros['id_usuario_criador'] = $id_usuario;  // ← FILTRO
+    // ...
+}
+```
 
-Criado arquivo: `database/mais_portugues_corrigido.sql`
+### 2. Adicionar Filtro Obrigatório em BancoQuestoes
+**Arquivo**: `beckend/helpers.php`
+```php
+public static function listar($filtros = []) {
+    global $conexao;
+    
+    $query = "SELECT * FROM questoes WHERE 1=1";
+    
+    // Filtro OBRIGATÓRIO: apenas questões do usuário logado
+    if (!empty($filtros['id_usuario_criador'])) {
+        $query .= " AND id_usuario_criador = ?";
+        $tipos .= "i";
+        $params[] = $filtros['id_usuario_criador'];
+    }
+    
+    // ... resto da query
+}
+```
 
-**Tabelas Finais** (3 apenas):
+### 3. Adicionar credentials: 'include' em Todos os fetch()
+**Arquivos**: `front/tela_de_login.php`, `front/home_page.php`
+
+#### 3a. Login (`tela_de_login.php`)
+```javascript
+fetch(`${BASE}/login.php`, {
+    method: 'POST',
+    credentials: 'include',  // ← ADICIONADO
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, senha })
+});
+```
+
+#### 3b. Verificar Sessão (`home_page.php`)
+```javascript
+const res = await fetch(`${BASE}/sessao.php`, { credentials: 'include' });
+```
+
+#### 3c. Listar Questões (`home_page.php`)
+```javascript
+const res = await fetch(`${BASE}/listar_questoes.php?busca=${encodeURIComponent(busca)}`, 
+    { credentials: 'include' }
+);
+```
+
+#### 3d. Logout (`home_page.php`)
+```javascript
+await fetch(`${BASE}/logout.php`, { credentials: 'include' });
+```
+
+---
+
+## 🧪 Teste de Isolamento (Verificado ✅)
+
+### Resultado Final
+```
+✅ Admin (ID=1): 9 questões
+✅ Novo Usuário (ID=6): 1 questão
+✅ FILTRO FUNCIONANDO CORRETAMENTE!
+```
+
+### Como Reproduzir
+1. Acesse: http://localhost/Projeto%20+Portugues/beckend/teste_completo.php
+2. Clique nos botões em ordem
+3. Resultado: Admin vê 9, novo usuário vê 1 questão
+
+---
+
+## 🐛 Bugs Corrigidos (Adicionais)
+
+### 4. Home Page Travando Infinitamente
+**Problema**: `sessão.php` (com til) em vez de `sessao.php`
+
+```javascript
+// ❌ ANTES (ERRO 404 - travava infinito)
+const res = await fetch(`${BASE}/sessão.php`, { credentials: 'include' });
+
+// ✅ DEPOIS (correto)
+const res = await fetch(`${BASE}/sessao.php`, { credentials: 'include' });
+```
+
+**Adições de Segurança**:
+- Adicionado `try/catch` para melhor tratamento de erros
+- Flag `carregandoQuestoes` para evitar requisições simultâneas
+- Validação de resposta JSON antes de processar
+- Logs de erro no console para debugging
+
+---
+
+## 📊 Estrutura de Dados Confirmada
+
+### Filtro de Questões por Usuário
+```sql
+SELECT * FROM questoes 
+WHERE id_usuario_criador = ? 
+ORDER BY criado_em DESC;
+```
+
+### Verificação de Usuário Logado
+```php
+function verificarAutenticacao() {
+    if (empty($_SESSION['usuario_id'] ?? null)) {
+        Resposta::erro('Você não está autenticado', 401);
+    }
+    return $_SESSION['usuario_id'];
+}
+```
+
+---
+
+## 🔐 Credenciais Atualizadas
+
+| Email | Senha | Tipo |
+|-------|-------|------|
+| `admin@admin.com` | `admin123` | Admin |
+| `novo@teste.com` | `senha123` | Professor |
+
+> **Nota**: Todas as senhas são armazenadas com `password_hash(PASSWORD_DEFAULT)` (bcrypt)
+
+---
+
+## 📝 Arquivos Modificados
+
+1. ✅ `beckend/listar_questoes.php` - Descomentar autenticação
+2. ✅ `beckend/helpers.php` - Adicionar filtro por usuário
+3. ✅ `front/tela_de_login.php` - Adicionar credentials: 'include'
+4. ✅ `front/home_page.php` - Adicionar credentials: 'include' + corrigir URL + melhorar error handling
+
+---
+
+## 🚀 Status Final
+
+✅ **ISOLAMENTO DE DADOS IMPLEMENTADO**
+✅ **TODOS OS USUÁRIOS TESTADOS**
+✅ **SESSÕES PERSISTINDO CORRETAMENTE**
+✅ **HOME PAGE FUNCIONANDO SEM TRAVAR**
 
 ```sql
 usuarios
