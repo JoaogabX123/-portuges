@@ -30,6 +30,6 @@ if (!$conexao->set_charset("utf8mb4")) {
     ]));
 }
 
-// Desabilitar o modo autocommit por padrão (segurança)
-$conexao->autocommit(false);
+// Habilitar autocommit (padrão MySQL)
+$conexao->autocommit(true);
 ?>

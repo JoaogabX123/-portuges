@@ -181,56 +181,83 @@
 
 <script>
     const BASE = '../beckend';
+    let carregandoQuestoes = false;
 
     // Verifica sessão ao carregar
     window.addEventListener('DOMContentLoaded', async () => {
-        const res = await fetch(`${BASE}/sessao.php`);
-        if (!res.ok) { window.location.href = 'tela_de_login.php'; return; }
+        try {
+            const res = await fetch(`${BASE}/sessao.php`, { credentials: 'include' });
+            if (!res.ok) { 
+                window.location.href = 'tela_de_login.php'; 
+                return; 
+            }
 
-        // Exibe aviso se veio de outra página
-        const params = new URLSearchParams(window.location.search);
-        const msg = params.get('msg');
-        const aviso = document.getElementById('aviso');
-        if (msg === 'sucesso') {
-            aviso.textContent = '✔ Questão salva com sucesso!';
-            aviso.className = 'aviso sucesso';
-        } else if (msg === 'excluida') {
-            aviso.textContent = '🗑 Questão excluída.';
-            aviso.className = 'aviso excluida';
+            // Exibe aviso se veio de outra página
+            const params = new URLSearchParams(window.location.search);
+            const msg = params.get('msg');
+            const aviso = document.getElementById('aviso');
+            if (msg === 'sucesso') {
+                aviso.textContent = '✔ Questão salva com sucesso!';
+                aviso.className = 'aviso sucesso';
+            } else if (msg === 'excluida') {
+                aviso.textContent = '🗑 Questão excluída.';
+                aviso.className = 'aviso excluida';
+            }
+
+            carregarQuestoes();
+        } catch(e) {
+            console.error('Erro ao verificar sessão:', e);
+            window.location.href = 'tela_de_login.php';
         }
-
-        carregarQuestoes();
     });
 
     async function carregarQuestoes() {
-        const busca = document.getElementById('campo_busca').value;
-        const res   = await fetch(`${BASE}/listar_questoes.php?busca=${encodeURIComponent(busca)}`);
-        if (!res.ok) { window.location.href = 'tela_de_login.php'; return; }
+        if (carregandoQuestoes) return; // Evita múltiplas requisições simultâneas
+        
+        carregandoQuestoes = true;
+        try {
+            const busca = document.getElementById('campo_busca').value;
+            const res   = await fetch(`${BASE}/listar_questoes.php?busca=${encodeURIComponent(busca)}`, { credentials: 'include' });
+            
+            if (!res.ok) { 
+                window.location.href = 'tela_de_login.php'; 
+                return; 
+            }
 
-        const resposta = await res.json();
-        const questoes = resposta.dados?.questoes || [];
-        const lista    = document.getElementById('lista');
+            const resposta = await res.json();
+            if (!resposta.ok) {
+                console.error('Erro na resposta:', resposta);
+                return;
+            }
 
-        if (!questoes.length) {
-            lista.innerHTML = '<div class="vazio">Nenhuma questão encontrada. Adicione a primeira!</div>';
-            return;
+            const questoes = resposta.dados?.questoes || [];
+            const lista    = document.getElementById('lista');
+
+            if (!questoes.length) {
+                lista.innerHTML = '<div class="vazio">Nenhuma questão encontrada. Adicione a primeira!</div>';
+                return;
+            }
+
+            lista.innerHTML = questoes.map(q => `
+                <div class="questoes"
+                     onclick="window.location='aba_questao_${q.tipo}.php?id=${encodeURIComponent(q.id)}'">
+                    <span>
+                        ${q.titulo || '(sem título)'}
+                        <span class="tipo_badge">${q.tipo}</span>
+                        ${q.status === 'rascunho' ? '<span class="badge_rascunho">rascunho</span>' : ''}
+                    </span>
+                    <button class="genero">${q.genero || '-'}</button>
+                </div>
+            `).join('');
+        } catch(e) {
+            console.error('Erro ao carregar questões:', e);
+        } finally {
+            carregandoQuestoes = false;
         }
-
-        lista.innerHTML = questoes.map(q => `
-            <div class="questoes"
-                 onclick="window.location='aba_questao_${q.tipo}.php?id=${encodeURIComponent(q.id)}'">
-                <span>
-                    ${q.titulo || '(sem título)'}
-                    <span class="tipo_badge">${q.tipo}</span>
-                    ${q.status === 'rascunho' ? '<span class="badge_rascunho">rascunho</span>' : ''}
-                </span>
-                <button class="genero">${q.genero || '-'}</button>
-            </div>
-        `).join('');
     }
 
     async function fazerLogout() {
-        await fetch(`${BASE}/logout.php`);
+        await fetch(`${BASE}/logout.php`, { credentials: 'include' });
         window.location.href = 'tela_de_login.php';
     }
 </script>

@@ -1,203 +1,245 @@
-# Guia de Instalação - Portuguese Feature Database
+# Guia de Instalação - Projeto +Portugues
 
-Este projeto foi corrigido e agora utiliza um banco de dados MySQL/MariaDB simplificado com as tabelas necessárias apenas.
+Este projeto é uma plataforma completa de gerenciamento de questões com isolamento de dados por usuário, autenticação PHP com sessões, e banco de dados MySQL.
 
-## Alterações Realizadas
+## ✅ Status Atual
 
-### ✅ Schema SQL Corrigido
-- Removidas tabelas desnecessárias: `aluno`, `professor`, `resposta`
-- Mantidas apenas 3 tabelas essenciais:
-  - `usuarios` - Autenticação de usuários
-  - `questoes` - Armazenamento de questões
-  - `alternativas_objetivas` - Alternativas A-E das questões múltipla escolha
+- ✅ **Banco de dados MySQL** funcionando
+- ✅ **Backend PHP** com endpoints seguros
+- ✅ **Isolamento de dados por usuário** implementado e testado
+- ✅ **Autenticação com sessões** PHP
+- ✅ **Frontend responsivo** funcionando
+- ✅ **Suporte a cookies** via `credentials: 'include'`
 
-### ✅ Backend PHP Refatorado
-- Classe `BancoQuestoes` migrada de JSON para MySQLi
-- `login.php` integrado com banco de dados (suporta `password_verify()`)
-- Todos os endpoints funcionando corretamente com MySQL
-- Autenticação verificada em operações críticas
+---
 
-### ✅ Frontend Mantido Intacto
-- Nenhuma alteração no HTML, CSS ou JavaScript
-- Interface permanece igual ao projeto original
+## 📋 Pré-requisitos
 
-## Passos de Instalação
+- **XAMPP** ou **LAMP/LEMP** com PHP 7.4+
+- **MySQL 5.7+** ou **MariaDB**
+- **Navegador moderno** (Chrome, Firefox, Safari, Edge)
+
+---
+
+## 🚀 Passos de Instalação
 
 ### 1. Criar o Banco de Dados
 
-```bash
-# Via phpMyAdmin:
+**Via phpMyAdmin** (recomendado):
+```
 1. Acesse http://localhost/phpmyadmin
-2. Clique em "Nova" para criar novo banco
+2. Clique em "Novo" para criar novo banco
 3. Nome do banco: `mais_portugues`
 4. Charset: utf8mb4_general_ci
 5. Clique em "Criar"
 ```
 
+**Via linha de comando**:
+```bash
+mysql -u root -p -e "CREATE DATABASE mais_portugues CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;"
+```
+
 ### 2. Importar o Schema
 
-```bash
-# Via phpMyAdmin:
+**Via phpMyAdmin**:
+```
 1. Selecione o banco `mais_portugues`
 2. Vá para a aba "Importar"
-3. Selecione o arquivo: database/mais_portugues_corrigido.sql
+3. Selecione o arquivo: database/mais_portugues.sql
 4. Clique em "Executar"
 ```
 
-**OU via linha de comando:**
-
+**Via linha de comando**:
 ```bash
-mysql -u root -p mais_portugues < database/mais_portugues_corrigido.sql
+mysql -u root -p mais_portugues < database/mais_portugues.sql
 ```
 
 ### 3. Verificar Configuração
 
-O arquivo `database/config.php` está pré-configurado com:
+Verifique o arquivo `database/config.php`:
+
 ```php
+<?php
 $servername = "localhost";
-$usuario = "root";
-$senha = "";  // Modifique se necessário
+$usuario = "root";           // ← Ajuste se necessário
+$senha = "";                 // ← Sua senha MySQL
 $banco = "mais_portugues";
+$port = 3306;
+?>
 ```
 
-Se suas credenciais MySQL forem diferentes, edite `database/config.php`.
+Se suas credenciais MySQL forem diferentes, edite o arquivo acima.
 
-## Credenciais Padrão
+---
 
-### Usuário Admin (já inserido no banco)
-- **Email**: `admin@admin.com`
-- **Senha**: `123`
+## 🔐 Credenciais Padrão
 
-Você pode adicionar mais usuários diretamente no banco ou criar um endpoint de registro.
+### Usuários Pré-criados
 
-## Estrutura de Dados
+| Email | Senha | Tipo | Questões |
+|-------|-------|------|----------|
+| `admin@admin.com` | `admin123` | Admin | 9 |
+| `novo@teste.com` | `senha123` | Professor | 1 |
+
+> **Segurança**: Todas as senhas são armazenadas com hash bcrypt `password_hash(PASSWORD_DEFAULT)`
+
+---
+
+## 🌐 Acessar a Aplicação
+
+### URL Principal
+```
+http://localhost/Projeto%20+Portugues/
+```
+
+Ou direto no login:
+```
+http://localhost/Projeto%20+Portugues/front/tela_de_login.php
+```
+
+---
+
+## 🧪 Testar Isolamento de Dados
+
+### Teste Automatizado
+
+```
+http://localhost/Projeto%20+Portugues/beckend/teste_completo.php
+```
+
+Este teste verifica automaticamente:
+- ✅ Login de novo usuário → vê 1 questão
+- ✅ Login de admin → vê 9 questões
+- ✅ Isolamento de dados funcionando
+
+---
+
+## 📚 Estrutura de Dados
 
 ### Tabela: usuarios
 ```sql
-id (INT) - PK, Auto Increment
-email (VARCHAR) - UNIQUE
-senha (VARCHAR) - Hash com password_hash()
-nome (VARCHAR)
-tipo (ENUM) - 'professor' ou 'admin'
-status (TINYINT) - 0=inativo, 1=ativo
-criado_em (TIMESTAMP)
-ultimo_login (DATETIME)
+id                INT PRIMARY KEY AUTO_INCREMENT
+email             VARCHAR(255) UNIQUE NOT NULL
+senha             VARCHAR(255) NOT NULL (bcrypt hash)
+nome              VARCHAR(100) NOT NULL
+tipo              ENUM('professor', 'admin') DEFAULT 'professor'
+status            TINYINT DEFAULT 1
+criado_em         TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+ultimo_login      DATETIME NULL
 ```
 
 ### Tabela: questoes
 ```sql
-id (INT) - PK, Auto Increment
-titulo (VARCHAR)
-tipo (ENUM) - 'objetiva' ou 'dissertativa'
-status (ENUM) - 'rascunho' ou 'publicada'
-genero (ENUM) - narrativo, argumentativo, descritivo, expositivo, instrucional
-subgenero (VARCHAR)
-especificacao (VARCHAR)
-enunciado (LONGTEXT)
-explicacao (LONGTEXT)
-resposta_correta (CHAR) - A, B, C, D, E (NULL para dissertativas)
-imagem (VARCHAR) - Caminho relativo da imagem
-id_usuario_criador (INT) - FK para usuarios
-criado_em (TIMESTAMP)
-atualizado_em (TIMESTAMP)
+id                      INT PRIMARY KEY AUTO_INCREMENT
+titulo                  VARCHAR(255) NOT NULL
+tipo                    ENUM('objetiva', 'dissertativa') NOT NULL
+status                  ENUM('rascunho', 'publicada') NOT NULL
+genero                  ENUM(...) NOT NULL
+subgenero               VARCHAR(100)
+especificacao           VARCHAR(100)
+enunciado               LONGTEXT NOT NULL
+explicacao              LONGTEXT
+resposta_correta        CHAR(1) NULL
+imagem                  VARCHAR(255)
+id_usuario_criador      INT NOT NULL (FK para usuarios.id) ← ISOLAMENTO
+criado_em               TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+atualizado_em           TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ```
 
 ### Tabela: alternativas_objetivas
 ```sql
-id (INT) - PK, Auto Increment
-id_questao (INT) - FK para questoes
-alternativa (CHAR) - 'A', 'B', 'C', 'D' ou 'E'
-texto (LONGTEXT) - Conteúdo da alternativa
-criado_em (TIMESTAMP)
+id          INT PRIMARY KEY AUTO_INCREMENT
+id_questao  INT NOT NULL (FK)
+alternativa CHAR(1) NOT NULL (A-E)
+texto       TEXT NOT NULL
+criado_em   TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ```
 
-## Endpoints da API
+---
 
-### Autenticação
-- `POST /beckend/login.php` - Login com email e senha
-- `POST /beckend/logout.php` - Logout da sessão
-- `POST /beckend/sessao.php` - Verificar sessão ativa
+## 🔒 Segurança Implementada
 
-### Questões
-- `POST /beckend/salvar_questao.php` - Criar/atualizar questão
-- `GET /beckend/buscar_questao.php?id=1` - Buscar questão por ID
-- `GET /beckend/listar_questoes.php` - Listar questões com filtros
-- `POST /beckend/excluir_questao.php` - Deletar questão
+### ✅ Isolamento por Usuário
+- Cada usuário vê **APENAS** suas questões
+- SQL: `WHERE id_usuario_criador = ?`
+- Verificação em todos os endpoints
 
-### Filtros para Listagem
+### ✅ Persistência de Sessão
+- `credentials: 'include'` em fetch() JavaScript
+- Cookies PHP sendo gerenciados corretamente
+
+### ✅ Autenticação
+- Hash bcrypt com `password_hash(PASSWORD_DEFAULT)`
+- Verificação com `password_verify()`
+- Verificação de sessão em operações críticas
+
+---
+
+## 📂 Estrutura de Pastas
+
 ```
-GET /beckend/listar_questoes.php?tipo=objetiva&status=publicada&genero=argumentativo&busca=termo
-```
-
-## Estrutura de Pastas
-
-```
-portuges-feature-databese/
+Projeto +Portugues/
 ├── beckend/
-│   ├── config.php                 # Configurações globais
-│   ├── helpers.php                # Classes (Resposta, BancoQuestoes, Upload)
-│   ├── login.php                  # Autenticação
-│   ├── logout.php                 # Encerrar sessão
-│   ├── sessao.php                 # Verificar autenticação
-│   ├── salvar_questao.php         # CRUD questões
-│   ├── buscar_questao.php         # Busca por ID
-│   ├── listar_questoes.php        # Listagem com filtros
-│   ├── excluir_questao.php        # Deletar questão
-│   ├── uploads/                   # Armazena imagens
-│   └── questoes.json              # (LEGADO - não mais usado)
+│   ├── config.php           ← Configuração MySQL
+│   ├── helpers.php          ← Classes BancoQuestoes, Resposta
+│   ├── login.php            ← Autenticação
+│   ├── logout.php           ← Sair
+│   ├── sessao.php           ← Verificar sessão
+│   ├── listar_questoes.php  ← Listar com isolamento ✨
+│   ├── salvar_questao.php   ← Criar/editar
+│   ├── deletar_questao.php  ← Deletar
+│   └── teste_completo.php   ← Teste automatizado
+├── front/
+│   ├── index.php                          ← Home
+│   ├── tela_de_login.php                  ← Login
+│   ├── cadastro_do_usuario.php            ← Registro
+│   ├── home_page.php                      ← Dashboard ✨
+│   ├── criacao_de_questao_objetiva.php    ← Criar objetiva
+│   ├── criacao_de_questao_dissertativa.php ← Criar dissertativa
+│   └── ...
 ├── database/
-│   ├── config.php                 # Configuração MySQLi
-│   └── mais_portugues_corrigido.sql # Schema SQL corrigido
-└── front/
-    ├── *.html/php                 # Arquivos da interface
-    ├── css/style.css              # Estilos
-    └── js/api.js                  # Cliente JavaScript
+│   ├── config.php           ← Configuração
+│   └── mais_portugues.sql   ← Schema SQL
+├── README.md                ← Documentação
+├── TESTE_API.md             ← Exemplos de API
+└── INSTALACAO.md            ← Este arquivo
 ```
 
-## Migração de Dados (Opcional)
+---
 
-Se você quiser migrar dados do `questoes.json` original:
+## ⚠️ Troubleshooting
 
-```php
-<?php
-require 'database/config.php';
-require 'beckend/helpers.php';
+### Problema: "Conexão recusada"
+**Solução**: Verifique se MySQL está rodando e as credenciais em `database/config.php`
 
-$arquivo = 'beckend/questoes.json';
-$conteudo = file_get_contents($arquivo);
-$questoes = json_decode($conteudo, true);
+### Problema: "Tabela não existe"
+**Solução**: Reimporte o schema: `database/mais_portugues.sql`
 
-foreach ($questoes as $questao) {
-    try {
-        // Modificar ID para NULL para auto_increment
-        unset($questao['id']);
-        BancoQuestoes::adicionar($questao);
-    } catch (Exception $e) {
-        echo "Erro ao migrar: " . $e->getMessage() . "\n";
-    }
-}
-?>
-```
+### Problema: "Home page travando"
+**Solução**: Abra DevTools (F12) e veja erros no Console. Hard refresh (Ctrl+F5).
 
-## Troubleshooting
+### Problema: "Login falha mas sem erro"
+**Solução**: Verifique se a senha é exatamente `admin123` (case-sensitive)
 
-### Erro: "Falha na conexão com o banco de dados"
-- Verifique se MySQL/MariaDB está rodando
-- Confirme credenciais em `database/config.php`
-- Verifique se o banco `mais_portugues` existe
+---
 
-### Erro: "Você não está autenticado"
-- Realize login via `POST /beckend/login.php` com email/senha
-- Verifique se as cookies/sessões estão habilitadas no navegador
+## 🚀 Próximos Passos
 
-### Erro: "Questão não encontrada"
-- Confirme que o ID da questão existe no banco
-- Verifique que o usuário tem permissão para acessar
+1. ✅ Testar login e isolamento
+2. ✅ Criar algumas questões
+3. ✅ Verificar que cada usuário vê apenas suas questões
+4. ✅ Testar logout e re-login
+5. ✅ Verificar admin dashboard com todas as questões
 
-## Suporte
+---
 
-Para dúvidas ou problemas, verifique:
-1. O arquivo `database/config.php` com credenciais corretas
+## 📞 Suporte
+
+Se encontrar algum erro, verifique:
+- `database/config.php` - Credenciais MySQL
+- `DevTools (F12)` - Console para erros JavaScript
+- Banco de dados está rodando
+- XAMPP Apache está ativo
 2. Se o schema SQL foi importado corretamente
 3. Os logs do MySQL para erros de conexão
 
