@@ -1,3 +1,11 @@
+<?php
+    session_start();
+    // Se já está logado, redireciona para home
+    if (isset($_SESSION['usuario_id'])) {
+        header('Location: home_page.php');
+        exit;
+    }
+?>
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -420,7 +428,7 @@
         <div class="divider"><span>ou</span></div>
 
         <div class="login-link">
-            Já tem uma conta? <a href="tela_de_login.html">Entre aqui</a>
+            Já tem uma conta? <a href="tela_de_login.php">Entre aqui</a>
         </div>
 
     </div>
@@ -523,7 +531,7 @@
             const lastName    = document.getElementById('lastName').value.trim();
             const email       = document.getElementById('email').value.trim();
             const passwordVal = document.getElementById('password').value;
-            const name        = `${firstName} ${lastName}`;
+            const nome        = `${firstName} ${lastName}`;
 
             const btn = document.getElementById('signupBtn');
             btn.disabled = true;
@@ -532,17 +540,17 @@
             btn.textContent = 'Criando conta';
 
             try {
-                const resp = await fetch('http://127.0.0.1:8000/auth/signup', {
+                const resp = await fetch('../beckend/signup.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name, email, password: passwordVal })
+                    body: JSON.stringify({ nome, email, senha: passwordVal })
                 });
 
                 const data = await resp.json();
-                if (!resp.ok) throw new Error(data.detail || 'Erro ao cadastrar');
+                if (!resp.ok) throw new Error(data.mensagem || 'Erro ao cadastrar');
 
                 showToast('Cadastro realizado! Redirecionando...', 'success');
-                setTimeout(() => { window.location.href = 'tela_de_login.html'; }, 1000);
+                setTimeout(() => { window.location.href = 'tela_de_login.php'; }, 1000);
 
             } catch (err) {
                 console.error(err);

@@ -1,3 +1,11 @@
+<?php
+    session_start();
+    // Se já está logado, redireciona para home
+    if (isset($_SESSION['usuario_id'])) {
+        header('Location: home_page.php');
+        exit;
+    }
+?>
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -171,8 +179,8 @@
 <header>
     <h1>+Português</h1>
     <div class="nav-botoes">
-        <a href="tela_de_login.html" class="btn-entrar">Entrar</a>
-        <a href="cadastro.html" class="btn-cadastrar">Cadastrar</a>
+        <a href="tela_de_login.php" class="btn-entrar">Entrar</a>
+        <a href="cadastro_do_usuario.php" class="btn-cadastrar">Cadastrar</a>
     </div>
 </header>
 
@@ -191,8 +199,8 @@
     </div>
 
     <div class="botoes">
-        <a href="cadastro.html" class="btn-comecar">Começar Agora</a>
-        <a href="tela_de_login.html" class="btn-login">Fazer Login</a>
+        <a href="cadastro_do_usuario.php" class="btn-comecar">Começar Agora</a>
+        <a href="tela_de_login.php" class="btn-login">Fazer Login</a>
     </div>
 </main>
 
