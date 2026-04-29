@@ -1,16 +1,35 @@
 <?php
-// conection to database
+/**
+ * CONFIGURAÇÃO DE BANCO DE DADOS
+ * Conexão MySQLi para o banco 'mais_portugues'
+ */
+
+// Configurações de conexão
 $servername = "localhost";
-$usuaio = "root";
+$usuario = "root";
 $senha = "";
 $banco = "mais_portugues";
+$port = 3306;
 
-// criar conexao
-$conecao = new mysqli($servername, $usuaio, $senha, $banco);
+// Criar conexão MySQLi
+$conexao = new mysqli($servername, $usuario, $senha, $banco, $port);
 
-if ($conecao->connect_error) {
-    die("Conexão falhou: " . $conecao->connect_error);
+// Verificar conexão
+if ($conexao->connect_error) {
+    die(json_encode([
+        'ok' => false,
+        'erro' => 'Falha na conexão com o banco de dados: ' . $conexao->connect_error
+    ]));
 }
 
-echo "Conexão bem-sucedida!";
+// Configurar charset UTF-8
+if (!$conexao->set_charset("utf8mb4")) {
+    die(json_encode([
+        'ok' => false,
+        'erro' => 'Erro ao definir charset: ' . $conexao->error
+    ]));
+}
+
+// Desabilitar o modo autocommit por padrão (segurança)
+$conexao->autocommit(false);
 ?>

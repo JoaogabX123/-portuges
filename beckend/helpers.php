@@ -1,9 +1,11 @@
 <?php
 /**
  * Funções Auxiliares e Classes Reutilizáveis
+ * Integrado com MySQLi
  */
 
 require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/../database/config.php';
 
 // ============================================
 // CLASSE: Resposta
@@ -71,171 +73,431 @@ class Resposta {
 // ============================================
 // CLASSE: BancoQuestoes
 // Gerencia todas as operações com questões
+// Integrada com MySQLi
 // ============================================
 class BancoQuestoes {
+    private static $conexao = null;
+    
     /**
-     * Obter todas as questões do arquivo JSON
+     * Obter conexão com banco de dados
      */
-    public static function obter() {
-        $arquivo = BANCO_ARQUIVO;
-        
-        if (!file_exists($arquivo)) {
-            return [];
+    public static function getConexao() {
+        global $conexao;
+        if ($conexao->connect_error) {
+            throw new Exception('Erro de conexão com banco de dados: ' . $conexao->connect_error);
         }
-        
-        $conteudo = @file_get_contents($arquivo);
-        if ($conteudo === false) {
-            throw new Exception('Erro ao ler arquivo de questões');
-        }
-        
-        $questoes = json_decode($conteudo, true);
-        
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            throw new Exception('Erro ao decodificar JSON: ' . json_last_error_msg());
-        }
-        
-        return $questoes ?? [];
-    }
-
-    /**
-     * Salvar questões no arquivo JSON
-     */
-    public static function salvar($questoes) {
-        $arquivo = BANCO_ARQUIVO;
-        $dirPai = dirname($arquivo);
-        
-        if (!is_dir($dirPai)) {
-            if (!mkdir($dirPai, 0755, true)) {
-                throw new Exception('Erro ao criar diretório de questões');
-            }
-        }
-        
-        $json = json_encode($questoes, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-        
-        if ($json === false) {
-            throw new Exception('Erro ao codificar JSON');
-        }
-        
-        if (@file_put_contents($arquivo, $json) === false) {
-            throw new Exception('Erro ao salvar questões');
-        }
+        return $conexao;
     }
 
     /**
      * Encontrar questão por ID
      */
     public static function encontrarPorId($id) {
-        $questoes = self::obter();
+        global $conexao;
         
-        foreach ($questoes as $questao) {
-            if ($questao['id'] === $id) {
-                return $questao;
-            }
+        $stmt = $conexao->prepare("SELECT * FROM questoes WHERE id = ?");
+        if (!$stmt) {
+            throw new Exception('Erro na preparação da query: ' . $conexao->error);
         }
         
-        return null;
+        $stmt->bind_param("i", $id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        
+        if ($result->num_rows === 0) {
+            $stmt->close();
+            return null;
+        }
+        
+        $questao = $result->fetch_assoc();
+        $stmt->close();
+        
+        // Carregar alternativas se for questão objetiva
+        if ($questao['tipo'] === 'objetiva') {
+            $questao['alternativas'] = self::obterAlternativas($questao['id']);
+            $questao['correta'] = $questao['resposta_correta'];
+        }
+        
+        return $questao;
+    }
+
+    /**
+     * Obter alternativas de uma questão objetiva
+     */
+    private static function obterAlternativas($idQuestao) {
+        global $conexao;
+        
+        $alternativas = [];
+        
+        $stmt = $conexao->prepare("SELECT alternativa, texto FROM alternativas_objetivas WHERE id_questao = ? ORDER BY alternativa ASC");
+        if (!$stmt) {
+            throw new Exception('Erro na preparação da query: ' . $conexao->error);
+        }
+        
+        $stmt->bind_param("i", $idQuestao);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        
+        while ($row = $result->fetch_assoc()) {
+            $alternativas[$row['alternativa']] = $row['texto'];
+        }
+        
+        $stmt->close();
+        
+        return $alternativas;
     }
 
     /**
      * Adicionar nova questão
      */
     public static function adicionar($questao) {
-        $questoes = self::obter();
-        $questoes[] = $questao;
-        self::salvar($questoes);
+        global $conexao;
         
-        return $questao;
+        $conexao->begin_transaction();
+        
+        try {
+            $tipo = $questao['tipo'];
+            $status = $questao['status'];
+            $titulo = $questao['titulo'];
+            $genero = $questao['genero'];
+            $subgenero = $questao['subgenero'] ?? null;
+            $especificacao = $questao['especificacao'] ?? null;
+            $enunciado = $questao['enunciado'];
+            $explicacao = $questao['explicacao'] ?? null;
+            $resposta_correta = isset($questao['correta']) ? $questao['correta'] : null;
+            $imagem = $questao['imagem'] ?? null;
+            $id_usuario = verificarAutenticacao(); // Função que obtém ID do usuário logado
+            
+            // Inserir questão
+            $stmt = $conexao->prepare(
+                "INSERT INTO questoes 
+                (titulo, tipo, status, genero, subgenero, especificacao, enunciado, explicacao, resposta_correta, imagem, id_usuario_criador) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+            );
+            
+            if (!$stmt) {
+                throw new Exception('Erro na preparação da query: ' . $conexao->error);
+            }
+            
+            $stmt->bind_param(
+                "ssssssssssi",
+                $titulo, $tipo, $status, $genero, $subgenero, $especificacao,
+                $enunciado, $explicacao, $resposta_correta, $imagem, $id_usuario
+            );
+            
+            if (!$stmt->execute()) {
+                throw new Exception('Erro ao inserir questão: ' . $stmt->error);
+            }
+            
+            $idQuestao = $stmt->insert_id;
+            $stmt->close();
+            
+            // Inserir alternativas se for questão objetiva
+            if ($tipo === 'objetiva' && isset($questao['alternativas']) && is_array($questao['alternativas'])) {
+                foreach ($questao['alternativas'] as $alt => $texto) {
+                    $stmt = $conexao->prepare(
+                        "INSERT INTO alternativas_objetivas (id_questao, alternativa, texto) VALUES (?, ?, ?)"
+                    );
+                    
+                    if (!$stmt) {
+                        throw new Exception('Erro ao inserir alternativa: ' . $conexao->error);
+                    }
+                    
+                    $stmt->bind_param("iss", $idQuestao, $alt, $texto);
+                    
+                    if (!$stmt->execute()) {
+                        throw new Exception('Erro ao inserir alternativa: ' . $stmt->error);
+                    }
+                    
+                    $stmt->close();
+                }
+            }
+            
+            $conexao->commit();
+            
+            // Retornar questão criada
+            $questao['id'] = $idQuestao;
+            return $questao;
+            
+        } catch (Exception $e) {
+            $conexao->rollback();
+            throw $e;
+        }
     }
 
     /**
      * Atualizar questão existente
      */
     public static function atualizar($id, $dados) {
-        $questoes = self::obter();
+        global $conexao;
         
-        foreach ($questoes as $indice => $questao) {
-            if ($questao['id'] === $id) {
-                // Mesclar dados mantendo campos não enviados
-                $questoes[$indice] = array_merge($questao, $dados);
-                self::salvar($questoes);
-                return $questoes[$indice];
+        $conexao->begin_transaction();
+        
+        try {
+            $tipo = $dados['tipo'];
+            $status = $dados['status'];
+            $titulo = $dados['titulo'];
+            $genero = $dados['genero'];
+            $subgenero = $dados['subgenero'] ?? null;
+            $especificacao = $dados['especificacao'] ?? null;
+            $enunciado = $dados['enunciado'];
+            $explicacao = $dados['explicacao'] ?? null;
+            $resposta_correta = isset($dados['correta']) ? $dados['correta'] : null;
+            $imagem = $dados['imagem'] ?? null;
+            
+            // Atualizar questão
+            $stmt = $conexao->prepare(
+                "UPDATE questoes SET 
+                titulo = ?, tipo = ?, status = ?, genero = ?, subgenero = ?, especificacao = ?, 
+                enunciado = ?, explicacao = ?, resposta_correta = ?, imagem = ? 
+                WHERE id = ?"
+            );
+            
+            if (!$stmt) {
+                throw new Exception('Erro na preparação da query: ' . $conexao->error);
             }
+            
+            $stmt->bind_param(
+                "ssssssssssi",
+                $titulo, $tipo, $status, $genero, $subgenero, $especificacao,
+                $enunciado, $explicacao, $resposta_correta, $imagem, $id
+            );
+            
+            if (!$stmt->execute()) {
+                throw new Exception('Erro ao atualizar questão: ' . $stmt->error);
+            }
+            
+            $stmt->close();
+            
+            // Atualizar alternativas se for questão objetiva
+            if ($tipo === 'objetiva') {
+                // Deletar alternativas antigas
+                $stmt = $conexao->prepare("DELETE FROM alternativas_objetivas WHERE id_questao = ?");
+                if (!$stmt) {
+                    throw new Exception('Erro ao deletar alternativas antigas: ' . $conexao->error);
+                }
+                $stmt->bind_param("i", $id);
+                $stmt->execute();
+                $stmt->close();
+                
+                // Inserir novas alternativas
+                if (isset($dados['alternativas']) && is_array($dados['alternativas'])) {
+                    foreach ($dados['alternativas'] as $alt => $texto) {
+                        $stmt = $conexao->prepare(
+                            "INSERT INTO alternativas_objetivas (id_questao, alternativa, texto) VALUES (?, ?, ?)"
+                        );
+                        
+                        if (!$stmt) {
+                            throw new Exception('Erro ao inserir alternativa: ' . $conexao->error);
+                        }
+                        
+                        $stmt->bind_param("iss", $id, $alt, $texto);
+                        
+                        if (!$stmt->execute()) {
+                            throw new Exception('Erro ao inserir alternativa: ' . $stmt->error);
+                        }
+                        
+                        $stmt->close();
+                    }
+                }
+            }
+            
+            $conexao->commit();
+            
+            return self::encontrarPorId($id);
+            
+        } catch (Exception $e) {
+            $conexao->rollback();
+            throw $e;
         }
-        
-        return null;
     }
 
     /**
      * Deletar questão por ID
      */
     public static function deletar($id) {
-        $questoes = self::obter();
-        $questoes = array_filter($questoes, function($q) use ($id) {
-            return $q['id'] !== $id;
-        });
+        global $conexao;
         
-        self::salvar(array_values($questoes));
-        return true;
-    }
-
-    /**
-     * Buscar questões por termo (título ou enunciado)
-     */
-    public static function buscar($termo) {
-        $questoes = self::obter();
+        $conexao->begin_transaction();
         
-        return array_filter($questoes, function($q) use ($termo) {
-            $titulo = strtolower($q['titulo'] ?? '');
-            $enunciado = strtolower($q['enunciado'] ?? '');
-            $termo = strtolower($termo);
+        try {
+            // Deletar alternativas (cascade não funcionou, deletar manualmente)
+            $stmt = $conexao->prepare("DELETE FROM alternativas_objetivas WHERE id_questao = ?");
+            if (!$stmt) {
+                throw new Exception('Erro ao deletar alternativas: ' . $conexao->error);
+            }
+            $stmt->bind_param("i", $id);
+            $stmt->execute();
+            $stmt->close();
             
-            return stripos($titulo, $termo) !== false || stripos($enunciado, $termo) !== false;
-        });
+            // Deletar questão
+            $stmt = $conexao->prepare("DELETE FROM questoes WHERE id = ?");
+            if (!$stmt) {
+                throw new Exception('Erro na preparação da query: ' . $conexao->error);
+            }
+            $stmt->bind_param("i", $id);
+            
+            if (!$stmt->execute()) {
+                throw new Exception('Erro ao deletar questão: ' . $stmt->error);
+            }
+            
+            $stmt->close();
+            
+            $conexao->commit();
+            
+            return true;
+            
+        } catch (Exception $e) {
+            $conexao->rollback();
+            throw $e;
+        }
     }
 
     /**
-     * Listar questões com paginação opcional
+     * Listar questões com filtros opcionais
      */
     public static function listar($filtros = []) {
-        $questoes = self::obter();
+        global $conexao;
         
-        // Filtrar por tipo
+        $query = "SELECT * FROM questoes WHERE 1=1";
+        $tipos = "";
+        $params = [];
+        
+        // Filtro por tipo
         if (!empty($filtros['tipo'])) {
-            $questoes = array_filter($questoes, function($q) use ($filtros) {
-                return $q['tipo'] === $filtros['tipo'];
-            });
+            $query .= " AND tipo = ?";
+            $tipos .= "s";
+            $params[] = $filtros['tipo'];
         }
         
-        // Filtrar por status
+        // Filtro por status
         if (!empty($filtros['status'])) {
-            $questoes = array_filter($questoes, function($q) use ($filtros) {
-                return $q['status'] === $filtros['status'];
-            });
+            $query .= " AND status = ?";
+            $tipos .= "s";
+            $params[] = $filtros['status'];
         }
         
-        // Filtrar por gênero
+        // Filtro por gênero
         if (!empty($filtros['genero'])) {
-            $questoes = array_filter($questoes, function($q) use ($filtros) {
-                return $q['genero'] === $filtros['genero'];
-            });
+            $query .= " AND genero = ?";
+            $tipos .= "s";
+            $params[] = $filtros['genero'];
         }
         
-        return array_values($questoes);
+        $query .= " ORDER BY criado_em DESC";
+        
+        $stmt = $conexao->prepare($query);
+        if (!$stmt) {
+            throw new Exception('Erro na preparação da query: ' . $conexao->error);
+        }
+        
+        // Bind params se houver
+        if (!empty($params)) {
+            $stmt->bind_param($tipos, ...$params);
+        }
+        
+        $stmt->execute();
+        $result = $stmt->get_result();
+        
+        $questoes = [];
+        while ($row = $result->fetch_assoc()) {
+            // Carregar alternativas se for objetiva
+            if ($row['tipo'] === 'objetiva') {
+                $row['alternativas'] = self::obterAlternativas($row['id']);
+                $row['correta'] = $row['resposta_correta'];
+            }
+            $questoes[] = $row;
+        }
+        
+        $stmt->close();
+        
+        return $questoes;
+    }
+
+    /**
+     * Buscar questões por termo
+     */
+    public static function buscar($termo) {
+        global $conexao;
+        
+        $termo = "%{$termo}%";
+        
+        $stmt = $conexao->prepare(
+            "SELECT * FROM questoes WHERE titulo LIKE ? OR enunciado LIKE ? ORDER BY criado_em DESC"
+        );
+        
+        if (!$stmt) {
+            throw new Exception('Erro na preparação da query: ' . $conexao->error);
+        }
+        
+        $stmt->bind_param("ss", $termo, $termo);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        
+        $questoes = [];
+        while ($row = $result->fetch_assoc()) {
+            if ($row['tipo'] === 'objetiva') {
+                $row['alternativas'] = self::obterAlternativas($row['id']);
+                $row['correta'] = $row['resposta_correta'];
+            }
+            $questoes[] = $row;
+        }
+        
+        $stmt->close();
+        
+        return $questoes;
     }
 
     /**
      * Obter estatísticas
      */
     public static function estatisticas() {
-        $questoes = self::obter();
+        global $conexao;
         
-        return [
-            'total' => count($questoes),
-            'objetivas' => count(array_filter($questoes, fn($q) => $q['tipo'] === 'objetiva')),
-            'dissertativas' => count(array_filter($questoes, fn($q) => $q['tipo'] === 'dissertativa')),
-            'publicadas' => count(array_filter($questoes, fn($q) => $q['status'] === 'publicada')),
-            'rascunhos' => count(array_filter($questoes, fn($q) => $q['status'] === 'rascunho'))
+        $stats = [
+            'total' => 0,
+            'objetivas' => 0,
+            'dissertativas' => 0,
+            'publicadas' => 0,
+            'rascunhos' => 0
         ];
+        
+        // Total
+        $result = $conexao->query("SELECT COUNT(*) as count FROM questoes");
+        if ($result) {
+            $row = $result->fetch_assoc();
+            $stats['total'] = $row['count'];
+        }
+        
+        // Objetivas
+        $result = $conexao->query("SELECT COUNT(*) as count FROM questoes WHERE tipo = 'objetiva'");
+        if ($result) {
+            $row = $result->fetch_assoc();
+            $stats['objetivas'] = $row['count'];
+        }
+        
+        // Dissertativas
+        $result = $conexao->query("SELECT COUNT(*) as count FROM questoes WHERE tipo = 'dissertativa'");
+        if ($result) {
+            $row = $result->fetch_assoc();
+            $stats['dissertativas'] = $row['count'];
+        }
+        
+        // Publicadas
+        $result = $conexao->query("SELECT COUNT(*) as count FROM questoes WHERE status = 'publicada'");
+        if ($result) {
+            $row = $result->fetch_assoc();
+            $stats['publicadas'] = $row['count'];
+        }
+        
+        // Rascunhos
+        $result = $conexao->query("SELECT COUNT(*) as count FROM questoes WHERE status = 'rascunho'");
+        if ($result) {
+            $row = $result->fetch_assoc();
+            $stats['rascunhos'] = $row['count'];
+        }
+        
+        return $stats;
     }
 }
 
@@ -366,7 +628,9 @@ function validarQuestao($dados) {
     }
     
     if (!in_array($dados['genero'] ?? '', array_keys(GENEROS_TEXTO))) {
-        $erros[] = 'Gênero de texto inválido';
+        $genero_recebido = $dados['genero'] ?? 'VAZIO';
+        $generos_validos = implode(', ', array_keys(GENEROS_TEXTO));
+        $erros[] = "Gênero de texto inválido: '$genero_recebido'. Válidos: $generos_validos";
     }
     
     // Validações específicas por tipo
@@ -392,8 +656,7 @@ function validarQuestao($dados) {
  * Verificar autenticação do usuário
  */
 function verificarAutenticacao() {
-    session_start();
-    
+    // Session já foi iniciada no arquivo principal
     if (empty($_SESSION['usuario_id'] ?? null)) {
         Resposta::erro('Você não está autenticado', 401);
     }

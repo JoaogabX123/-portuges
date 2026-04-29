@@ -138,13 +138,26 @@
         const arquivo = document.getElementById('imagem').files[0];
         if (arquivo) fd.append('imagem', arquivo);
 
-        const res  = await fetch(`${BASE}/salvar_questao.php`, { method: 'POST', body: fd });
-        const data = await res.json();
+        try {
+            const res  = await fetch(`${BASE}/salvar_questao.php`, { method: 'POST', body: fd });
+            const data = await res.json();
 
-        if (data.ok) {
-            window.location.href = 'home_page.html?msg=sucesso';
-        } else {
-            alert('Erro ao salvar. Tente novamente.');
+            if (data.ok) {
+                window.location.href = 'home_page.php?msg=sucesso';
+            } else {
+                let mensagem = data.erro || 'Erro desconhecido';
+                
+                // Se houver erros de validação específicos, mostrar todos
+                if (data.erros && Array.isArray(data.erros)) {
+                    mensagem = 'Erros de validação:\n' + data.erros.join('\n');
+                }
+                
+                alert(mensagem);
+                console.error('Erro detalhado:', data);
+            }
+        } catch (e) {
+            alert('Erro de conexão: ' + e.message);
+            console.error('Erro:', e);
         }
     }
 </script>

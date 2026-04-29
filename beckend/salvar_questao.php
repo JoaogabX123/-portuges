@@ -4,13 +4,45 @@
  * Cria ou atualiza questão com validação completa
  */
 
+// Configurar error handling para JSON
+error_reporting(E_ALL);
+ini_set('display_errors', '0');
+ini_set('log_errors', '1');
+
+// Iniciar sessão ANTES de qualquer output
+session_start();
+
+// Header JSON obrigatório
+header('Content-Type: application/json; charset=utf-8');
+
+// Catch erros fatais e warnings
+set_error_handler(function($errno, $errstr, $errfile, $errline) {
+    http_response_code(500);
+    echo json_encode([
+        'ok' => false,
+        'erro' => "Erro PHP: $errstr (Linha $errline)",
+        'arquivo' => $errfile
+    ]);
+    exit;
+});
+
 require 'config.php';
 require 'helpers.php';
 
 try {
+    // Verificar autenticação
+    $usuario_id = verificarAutenticacao();
+    
     $id = $_POST['id'] ?? '';
     $tipo = $_POST['tipo'] ?? 'objetiva';
     $acao = $_POST['acao'] ?? 'salvar';
+    $status = ($acao === 'postar') ? 'publicada' : 'rascunho';
+    
+    // DEBUG: mostrar valores recebidos
+    error_log('POST genero: ' . var_export($_POST['genero'] ?? 'VAZIO', true));
+    
+    // Adicionar status ao POST antes de validar
+    $_POST['status'] = $status;
     
     $erros = validarQuestao($_POST);
     if (!empty($erros)) {
@@ -32,10 +64,7 @@ try {
         }
     }
     
-    $status = ($acao === 'postar') ? 'publicada' : 'rascunho';
-    
     $dadosQuestao = [
-        'id' => $id,
         'tipo' => $tipo,
         'status' => $status,
         'titulo' => $_POST['titulo'],
@@ -44,7 +73,8 @@ try {
         'explicacao' => $_POST['explicacao'] ?? '',
         'especificacao' => $_POST['especificacao'] ?? '',
         'subgenero' => $_POST['subgenero'] ?? '',
-        'imagem' => $caminhoImagem
+        'imagem' => $caminhoImagem,
+        'id_usuario_criador' => $usuario_id
     ];
     
     if ($tipo === 'objetiva') {
@@ -74,16 +104,16 @@ try {
             if (empty($caminhoImagem) && !empty($questaoExistente['imagem'])) {
                 $dadosQuestao['imagem'] = $questaoExistente['imagem'];
             }
-            BancoQuestoes::atualizar($id, $dadosQuestao);
+            $questaoAtualizada = BancoQuestoes::atualizar($id, $dadosQuestao);
+            Resposta::sucesso(['id' => $questaoAtualizada['id']], 'Questão atualizada com sucesso');
         } else {
-            BancoQuestoes::adicionar($dadosQuestao);
+            $questaoNova = BancoQuestoes::adicionar($dadosQuestao);
+            Resposta::sucesso(['id' => $questaoNova['id']], 'Questão salva com sucesso');
         }
     } else {
-        $dadosQuestao['id'] = gerarId();
-        BancoQuestoes::adicionar($dadosQuestao);
+        $questaoNova = BancoQuestoes::adicionar($dadosQuestao);
+        Resposta::sucesso(['id' => $questaoNova['id']], 'Questão criada com sucesso');
     }
-    
-    Resposta::sucesso(['id' => $dadosQuestao['id']], 'Questão salva com sucesso');
 } catch (Exception $e) {
     Resposta::erro('Erro ao salvar questão: ' . $e->getMessage(), 500);
 }

@@ -74,8 +74,8 @@
             </div>
             <div class="explicacao"><b>Explicação:</b><br><br>${q.explicacao || ''}</div>
             <div class="botoes">
-                <button class="voltar" onclick="window.location='home_page.html'">Voltar</button>
-                <button class="editar" onclick="window.location='editar_questao.html?id=${encodeURIComponent(q.id)}'">Editar</button>
+                <button class="voltar" onclick="window.location='home_page.php'">Voltar</button>
+                <button class="editar" onclick="window.location='editar_questao.php?id=${encodeURIComponent(q.id)}'">Editar</button>
                 <button class="copiar" onclick="copiar()">Copiar</button>
                 <button class="baixar">Baixar</button>
             </div>
