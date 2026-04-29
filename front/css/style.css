@@ -519,6 +519,12 @@ main {
     font-size: 26px;
 }
 
+.login-container button,
+.login-container input[type="submit"],
+.login-container input[type="button"] {
+    width: 100%;
+}
+
 .erro {
     background: var(--color-danger);
     color: white;
