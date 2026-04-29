@@ -9,7 +9,6 @@
             background-image: linear-gradient(30deg, cyan, rgb(35, 115, 235));
         }
         .login-box {
-        div {
             background-color: rgba(0, 0, 0, 0.8);
             position: absolute;
             top: 50%; left: 50%;
@@ -26,12 +25,6 @@
         input[type="email"],
         input[type="password"] {
             display: block;
-            padding: 75px;
-            border-radius: 15px;
-            color: aliceblue;
-        }
-        h1 { text-align: center; }
-        input {
             padding: 15px;
             border: none;
             outline: none;
@@ -66,7 +59,6 @@
             text-decoration: none;
         }
         .linha-lembrar a:hover { text-decoration: underline; }
-        }
         button {
             background-color: rgb(82, 202, 250);
             border: none;
@@ -105,8 +97,6 @@
             font-weight: bold;
         }
         .cadastro a:hover { text-decoration: underline; }
-        }
-        button:hover { background-color: rgb(60, 141, 248); }
         .erro {
             background: rgba(200, 50, 50, 0.85);
             color: white;
@@ -115,7 +105,6 @@
             margin-bottom: 15px;
             text-align: center;
             font-size: 13px;
-            font-size: 14px;
             display: none;
         }
     </style>
@@ -142,27 +131,20 @@
         <div class="cadastro">
             Não tem uma conta? <a href="cadastro.html">Cadastre-se aqui</a>
         </div>
-    <div>
-        <h1>Login</h1>
-        <div class="erro" id="msg_erro"></div>
-        <input type="email" id="email" placeholder="E-mail">
-        <br><br>
-        <input type="password" id="senha" placeholder="Senha">
-        <br><br>
-        <button onclick="fazerLogin()">Entrar</button>
     </div>
 
     <script>
         const BASE = '../beckend';
 
         async function fazerLogin() {
-            const email = document.getElementById('email').value.trim();
-            const senha = document.getElementById('senha').value.trim();
+            const email   = document.getElementById('email').value.trim();
+            const senha   = document.getElementById('senha').value.trim();
+            const lembrar = document.getElementById('lembrar').checked;
 
-            const res  = await fetch(`${BASE}/login.php`, {
+            const res = await fetch(`${BASE}/login.php`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, senha })
+                body: JSON.stringify({ email, senha, lembrar })
             });
             const data = await res.json();
 
@@ -175,7 +157,6 @@
             }
         }
 
-        // Permite pressionar Enter para logar
         document.addEventListener('keydown', e => { if (e.key === 'Enter') fazerLogin(); });
     </script>
 </body>
