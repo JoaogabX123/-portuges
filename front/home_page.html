@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>+Português</title>
+<style>
+    body {
+        font-family: Arial, Helvetica, sans-serif;
+        background-image: linear-gradient(30deg, cyan, rgb(35, 115, 235));
+        margin: 25px;
+    }
+    header {
+        background-color: rgba(0, 0, 0, 0.8);
+        color: rgb(239, 249, 255);
+        padding: 20px;
+        text-align: center;
+        position: relative;
+    }
+    header input {
+        margin-top: 10px;
+        outline: none;
+        padding: 10px;
+        width: 300px;
+    }
+    .btn_logout {
+        position: absolute;
+        top: 50%; right: 20px;
+        transform: translateY(-50%);
+        background: rgba(200,50,50,0.85);
+        color: white;
+        border: none;
+        padding: 8px 14px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 13px;
+    }
+    main { width: 1000px; margin: auto; margin-top: 40px; }
+    .aviso {
+        padding: 10px 15px;
+        border-radius: 6px;
+        margin-bottom: 15px;
+        text-align: center;
+        font-size: 14px;
+        display: none;
+    }
+    .aviso.sucesso { background: #d4edda; color: #155724; display: block; }
+    .aviso.excluida { background: #f8d7da; color: #721c24; display: block; }
+    .lista_de_questoes {
+        background: rgb(250, 253, 255);
+        padding: 20px;
+        border-radius: 8px;
+        min-height: 100px;
+    }
+    .questoes {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+        padding: 10px;
+        border-bottom: 1px solid #eee;
+        cursor: pointer;
+        border-radius: 6px;
+        transition: background 0.15s;
+    }
+    .questoes:hover { background: rgb(240, 245, 255); }
+    .genero {
+        background: #3182ce;
+        color: white;
+        border: none;
+        padding: 5px 10px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 13px;
+    }
+    .tipo_badge {
+        font-size: 11px;
+        background: #e2e8f0;
+        color: #444;
+        padding: 2px 8px;
+        border-radius: 10px;
+        margin-left: 8px;
+    }
+    .badge_rascunho {
+        font-size: 11px;
+        background: #fff3cd;
+        color: #856404;
+        padding: 2px 8px;
+        border-radius: 10px;
+        margin-left: 4px;
+    }
+    .vazio { text-align: center; color: #888; padding: 40px 0; }
+    .add {
+        position: fixed;
+        bottom: 50px; left: 50%;
+        transform: translateX(-50%);
+        background-color: rgb(60, 141, 248);
+        color: white;
+        border: none;
+        padding: 20px 30px;
+        font-size: 25px;
+        border-radius: 10px;
+        cursor: pointer;
+    }
+    #topo {
+        position: fixed;
+        bottom: 20px; right: 20px;
+        width: 50px; height: 50px;
+        border: none; border-radius: 50%;
+        background-color: black;
+        color: white; font-size: 20px;
+        cursor: pointer;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    }
+    #topo:hover { background-color: rgb(40,40,40); }
+
+    /* Modal */
+    .modal-overlay {
+        display: none;
+        position: fixed; inset: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 100;
+        align-items: center;
+        justify-content: center;
+    }
+    .modal-overlay.ativo { display: flex; }
+    .modal {
+        background: white;
+        border-radius: 12px;
+        padding: 35px 40px;
+        text-align: center;
+        width: 360px;
+    }
+    .modal h2 { margin-bottom: 25px; font-size: 18px; }
+    .modal-botoes { display: flex; gap: 15px; justify-content: center; }
+    .modal-botoes a {
+        flex: 1; padding: 14px; border-radius: 8px;
+        text-decoration: none; font-weight: bold; font-size: 15px;
+        color: white; background: #3182ce; transition: background 0.2s;
+    }
+    .modal-botoes a:hover { background: rgb(35,110,200); }
+    .modal-fechar {
+        margin-top: 18px; background: none; border: none;
+        color: #888; cursor: pointer; font-size: 13px;
+    }
+</style>
+</head>
+<body>
+
+<header>
+    <h1>+Português</h1>
+    <input type="text" id="campo_busca" placeholder="Pesquisar questão..." oninput="carregarQuestoes()">
+    <button class="btn_logout" onclick="fazerLogout()">Sair</button>
+</header>
+
+<main>
+    <div class="aviso" id="aviso"></div>
+    <div class="lista_de_questoes" id="lista">
+        <div class="vazio">Carregando...</div>
+    </div>
+</main>
+
+<button class="add" onclick="document.getElementById('modal_tipo').classList.add('ativo')">
+    + Adicionar questão
+</button>
+<button id="topo" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+
+<!-- Modal de tipo -->
+<div class="modal-overlay" id="modal_tipo">
+    <div class="modal">
+        <h2>Qual tipo de questão?</h2>
+        <div class="modal-botoes">
+            <a href="criacao_de_questao_objetiva.html">Objetiva</a>
+            <a href="criacao_de_questao_dissertativa.html">Dissertativa</a>
+        </div>
+        <button class="modal-fechar"
+                onclick="document.getElementById('modal_tipo').classList.remove('ativo')">
+            Cancelar
+        </button>
+    </div>
+</div>
+
+<script>
+    const BASE = '../beckend';
+
+    // Verifica sessão ao carregar
+    window.addEventListener('DOMContentLoaded', async () => {
+        const res = await fetch(`${BASE}/sessao.php`);
+        if (!res.ok) { window.location.href = 'tela_de_login.html'; return; }
+
+        // Exibe aviso se veio de outra página
+        const params = new URLSearchParams(window.location.search);
+        const msg = params.get('msg');
+        const aviso = document.getElementById('aviso');
+        if (msg === 'sucesso') {
+            aviso.textContent = '✔ Questão salva com sucesso!';
+            aviso.className = 'aviso sucesso';
+        } else if (msg === 'excluida') {
+            aviso.textContent = '🗑 Questão excluída.';
+            aviso.className = 'aviso excluida';
+        }
+
+        carregarQuestoes();
+    });
+
+    async function carregarQuestoes() {
+        const busca = document.getElementById('campo_busca').value;
+        const res   = await fetch(`${BASE}/listar_questoes.php?busca=${encodeURIComponent(busca)}`);
+        if (!res.ok) { window.location.href = 'tela_de_login.html'; return; }
+
+        const resposta = await res.json();
+        const questoes = resposta.dados?.questoes || [];
+        const lista    = document.getElementById('lista');
+
+        if (!questoes.length) {
+            lista.innerHTML = '<div class="vazio">Nenhuma questão encontrada. Adicione a primeira!</div>';
+            return;
+        }
+
+        lista.innerHTML = questoes.map(q => `
+            <div class="questoes"
+                 onclick="window.location='aba_questao_${q.tipo}.html?id=${encodeURIComponent(q.id)}'">
+                <span>
+                    ${q.titulo || '(sem título)'}
+                    <span class="tipo_badge">${q.tipo}</span>
+                    ${q.status === 'rascunho' ? '<span class="badge_rascunho">rascunho</span>' : ''}
+                </span>
+                <button class="genero">${q.genero || '-'}</button>
+            </div>
+        `).join('');
+    }
+
+    async function fazerLogout() {
+        await fetch(`${BASE}/logout.php`);
+        window.location.href = 'tela_de_login.html';
+    }
+</script>
+</body>
+</html>
