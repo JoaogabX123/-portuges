@@ -218,7 +218,7 @@
 
         lista.innerHTML = questoes.map(q => `
             <div class="questoes"
-                 onclick="window.location='aba_questao_${q.tipo}.html?id=${encodeURIComponent(q.id)}'">
+                 onclick="window.location='aba_questao_${q.tipo}.php?id=${encodeURIComponent(q.id)}'">
                 <span>
                     ${q.titulo || '(sem título)'}
                     <span class="tipo_badge">${q.tipo}</span>

@@ -628,7 +628,9 @@ function validarQuestao($dados) {
     }
     
     if (!in_array($dados['genero'] ?? '', array_keys(GENEROS_TEXTO))) {
-        $erros[] = 'Gênero de texto inválido';
+        $genero_recebido = $dados['genero'] ?? 'VAZIO';
+        $generos_validos = implode(', ', array_keys(GENEROS_TEXTO));
+        $erros[] = "Gênero de texto inválido: '$genero_recebido'. Válidos: $generos_validos";
     }
     
     // Validações específicas por tipo
@@ -654,8 +656,7 @@ function validarQuestao($dados) {
  * Verificar autenticação do usuário
  */
 function verificarAutenticacao() {
-    session_start();
-    
+    // Session já foi iniciada no arquivo principal
     if (empty($_SESSION['usuario_id'] ?? null)) {
         Resposta::erro('Você não está autenticado', 401);
     }

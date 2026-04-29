@@ -4,6 +4,23 @@
  * Deleta questão por ID
  */
 
+error_reporting(E_ALL);
+ini_set('display_errors', '0');
+ini_set('log_errors', '1');
+
+session_start();
+
+header('Content-Type: application/json; charset=utf-8');
+
+set_error_handler(function($errno, $errstr, $errfile, $errline) {
+    http_response_code(500);
+    echo json_encode([
+        'ok' => false,
+        'erro' => "Erro PHP: $errstr (Linha $errline)"
+    ]);
+    exit;
+});
+
 require 'config.php';
 require 'helpers.php';
 

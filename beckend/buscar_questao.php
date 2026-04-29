@@ -4,6 +4,13 @@
  * Busca questão específica por ID
  */
 
+error_reporting(E_ALL);
+ini_set('display_errors', '0');
+
+session_start();
+
+header('Content-Type: application/json; charset=utf-8');
+
 require 'config.php';
 require 'helpers.php';
 

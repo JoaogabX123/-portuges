@@ -238,7 +238,7 @@ header('Content-Type: text/html; charset=utf-8');
     // Próximos passos
     echo "<h2>Próximos Passos</h2>";
     echo "<ol>";
-    echo "<li>Se todos os erros foram corrigidos, acesse a interface em <code>/front/tela_de_login.html</code></li>";
+    echo "<li>Se todos os erros foram corrigidos, acesse a interface em <code>/front/tela_de_login.php</code></li>";
     echo "<li>Login com <code>admin@admin.com</code> e senha <code>123</code></li>";
     echo "<li>Comece a criar e gerenciar questões</li>";
     echo "</ol>";

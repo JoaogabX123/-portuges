@@ -71,10 +71,10 @@
     let   questao = null;
 
     window.addEventListener('DOMContentLoaded', async () => {
-        if (!id) { window.location.href = 'home_page.html'; return; }
+        if (!id) { window.location.href = 'home_page.php'; return; }
 
         const res = await fetch(`${BASE}/buscar_questao.php?id=${encodeURIComponent(id)}`);
-        if (!res.ok) { window.location.href = 'home_page.html'; return; }
+        if (!res.ok) { window.location.href = 'home_page.php'; return; }
 
         const resposta = await res.json();
         questao = resposta.dados || resposta;
@@ -271,7 +271,7 @@
         const data = await res.json();
 
         if (data.ok) {
-            window.location.href = 'home_page.html?msg=sucesso';
+            window.location.href = 'home_page.php?msg=sucesso';
         } else {
             alert('Erro ao salvar. Tente novamente.');
         }
@@ -286,7 +286,7 @@
         });
         const data = await res.json();
         if (data.ok) {
-            window.location.href = 'home_page.html?msg=excluida';
+            window.location.href = 'home_page.php?msg=excluida';
         } else {
             alert('Erro ao excluir.');
         }

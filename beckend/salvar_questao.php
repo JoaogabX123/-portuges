@@ -4,16 +4,45 @@
  * Cria ou atualiza questão com validação completa
  */
 
+// Configurar error handling para JSON
+error_reporting(E_ALL);
+ini_set('display_errors', '0');
+ini_set('log_errors', '1');
+
+// Iniciar sessão ANTES de qualquer output
+session_start();
+
+// Header JSON obrigatório
+header('Content-Type: application/json; charset=utf-8');
+
+// Catch erros fatais e warnings
+set_error_handler(function($errno, $errstr, $errfile, $errline) {
+    http_response_code(500);
+    echo json_encode([
+        'ok' => false,
+        'erro' => "Erro PHP: $errstr (Linha $errline)",
+        'arquivo' => $errfile
+    ]);
+    exit;
+});
+
 require 'config.php';
 require 'helpers.php';
 
 try {
     // Verificar autenticação
-    verificarAutenticacao();
+    $usuario_id = verificarAutenticacao();
     
     $id = $_POST['id'] ?? '';
     $tipo = $_POST['tipo'] ?? 'objetiva';
     $acao = $_POST['acao'] ?? 'salvar';
+    $status = ($acao === 'postar') ? 'publicada' : 'rascunho';
+    
+    // DEBUG: mostrar valores recebidos
+    error_log('POST genero: ' . var_export($_POST['genero'] ?? 'VAZIO', true));
+    
+    // Adicionar status ao POST antes de validar
+    $_POST['status'] = $status;
     
     $erros = validarQuestao($_POST);
     if (!empty($erros)) {
@@ -35,8 +64,6 @@ try {
         }
     }
     
-    $status = ($acao === 'postar') ? 'publicada' : 'rascunho';
-    
     $dadosQuestao = [
         'tipo' => $tipo,
         'status' => $status,
@@ -46,7 +73,8 @@ try {
         'explicacao' => $_POST['explicacao'] ?? '',
         'especificacao' => $_POST['especificacao'] ?? '',
         'subgenero' => $_POST['subgenero'] ?? '',
-        'imagem' => $caminhoImagem
+        'imagem' => $caminhoImagem,
+        'id_usuario_criador' => $usuario_id
     ];
     
     if ($tipo === 'objetiva') {
