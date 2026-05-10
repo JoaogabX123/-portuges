@@ -1,134 +1,413 @@
-# 📚 +Português
+# 📚 +Português - Gerenciador de Questões
 
-Uma plataforma moderna para professores gerenciarem, organizarem e reutilizarem suas questões de forma eficiente.
+Uma plataforma robusta com arquitetura **MVC moderna** para professores gerenciarem, organizarem e reutilizarem suas questões de forma eficiente com banco de dados centralizado.
 
 ## 🎯 Objetivo
 
 Criar uma solução inteligente que permite professores de todas as categorias de ensino:
-- **Centralizar** todas as suas questões em um único lugar
-- **Organizar** questões por matéria, tipo, gênero e assunto customizado
+- **Centralizar** todas as suas questões em um único lugar (banco de dados MySQL)
+- **Organizar** questões por gênero textual, tipo e especificações
 - **Filtrar** questões através de filtros customizados avançados
 - **Reutilizar** questões em diferentes avaliações e contextos
-- **Gerenciar** versões e histórico de questões
+- **Gerenciar** histórico e status de questões (rascunho/publicada)
+- **Isolar dados** - Cada usuário vê apenas suas próprias questões
 
 ---
 
-## ✨ Funcionalidades Principais
+## 📚 Documentação Rápida
+
+| Documento | Conteúdo |
+|-----------|----------|
+| **[📖 INSTALACAO.md](docs/INSTALACAO.md)** | Guia passo a passo: criar banco, importar SQL, configurar servidor |
+| **[🧪 TESTE_API.md](docs/TESTE_API.md)** | Exemplos de requisições cURL e testes de endpoints |
+| **[🏗️ MVC_DOCUMENTATION.md](docs/MVC_DOCUMENTATION.md)** | Documentação detalhada da arquitetura MVC e componentes |
+
+---
 
 ### 🔐 Autenticação & Segurança
-- Sistema de autenticação com email/senha
-- Validação de email
-- Tokens JWT para sessões seguras
-- Soft delete para preservar histórico
+- ✅ Sistema de autenticação com email/senha
+- ✅ Hash seguro de senhas com `password_hash(PASSWORD_DEFAULT)`
+- ✅ Sessões PHP com configuração segura (httponly, samesite)
+- ✅ Logout funcional com session_destroy()
+- ✅ **Isolamento de dados por usuário** (cada usuário vê APENAS suas questões)
+- ✅ Suporte a cookies via `credentials: 'include'` em requisições fetch
+- ✅ Múltiplos usuários (usuários independentes)
 
 ### 📋 Gerenciamento de Questões
-- Criar, editar, visualizar e deletar questões
-- Suporte para múltiplos tipos:
-  - Questões Objetivas (múltipla escolha)
-  - Questões Discursivas
-  - Questões Dissertativas
-- Marcar questões favoritas
-- Histórico de modificações
+- ✅ Criar questões (objetivas e dissertativas)
+- ✅ Editar questões existentes
+- ✅ Visualizar todas as questões do usuário
+- ✅ Deletar questões
+- ✅ Buscar questões por título/texto
+- ✅ Filtrar por tipo, gênero e status
+- ✅ Upload de imagens para questões (JPEG, PNG, WebP, GIF)
+- ✅ Explicação detalhada para cada questão
 
-### 🏷️ Organização Inteligente
-- **Estrutura hierárquica**: Matéria → Gênero → Assunto
-- Criar categorias e filtros customizados
-- Filtro rápido por matéria, tipo e dificuldade
-- Busca avançada de questões
+### 🏷️ Tipos de Questões
+- **Questões Objetivas (Múltipla Escolha)**
+  - 5 alternativas (A, B, C, D, E)
+  - Resposta correta definida
+  - Alternativas armazenadas em tabela separada
+  
+- **Questões Dissertativa**
+  - Enunciado e orientações para resposta
+  - Explicação sobre a questão
 
-### 📊 Dashboard
-- Visualização intuitiva de todas as questões
-- Estatísticas sobre questões criadas
-- Acesso rápido a questões recentes
+### 📊 Organização de Conteúdo
+- **Gêneros textuais**: Narrativo, Argumentativo, Descritivo, Expositivo, Instrucional
+- **Status**: Rascunho ou Publicada
+- **Especificação**: Categorização customizada
+- **Subgênero**: Subcategorias específicas
 
 ---
 
 ## 🛠️ Tech Stack
 
 ### Frontend
-- **React** + Vite
-- **CSS** para estilização responsiva
-- **JavaScript** moderno (ES6+)
+- **HTML5** + **CSS3** (Responsivo)
+- **JavaScript** (Vanilla JS com Fetch API)
+- **PHP** para renderização de templates
 
 ### Backend
-- **Node.js / Python** (a ser definido)
-- **API RESTful**
-- **JWT** para autenticação
+- **PHP 7.4+** com **MySQLi OOP**
+- **Arquitetura MVC** (Models, Controllers, Views, Routes)
+- **API via PHP (endpoints HTTP)**
+- **Sessões PHP** com configuração segura
 
 ### Banco de Dados
-- **PostgreSQL / MySQL / MongoDB** (a ser definido)
-- **Schema relacional** para hierarquia de matérias/assuntos
+- **MySQL 5.7+** ou **MariaDB**
+- **3 tabelas principais**:
+  - `usuarios` - Autenticação
+  - `questoes` - Armazenamento de questões
+  - `alternativas_objetivas` - Alternativas das questões múltipla escolha
+- **Prepared Statements** para prevenir SQL Injection
 
 ---
 
-## 📦 Instalação
+## 📁 Estrutura do Projeto (MVC)
+
+```
+Projeto +Portugues/
+├── public/                     # Document root (acessível via HTTP)
+│   ├── index.php              # Router central - ponto único de entrada
+│   ├── css/
+│   │   └── style.css          # Estilos consolidados
+│   └── uploads/               # Imagens das questões
+│
+├── app/
+│   ├── config/
+│   │   └── config.php         # Configuração global + helpers + autoloader
+│   │
+│   ├── models/                # Lógica de dados
+│   │   ├── Usuario.php        # Model de usuários
+│   │   ├── Questao.php        # Model de questões
+│   │   └── Alternativa.php    # Model de alternativas
+│   │
+│   ├── controllers/           # Lógica de negócio
+│   │   ├── LoginController.php
+│   │   ├── LogoutController.php
+│   │   ├── SessaoController.php
+│   │   └── QuestaoController.php
+│   │
+│   ├── routes/                # Endpoints HTTP
+│   │   ├── login.php
+│   │   ├── logout.php
+│   │   ├── usuarios.php
+│   │   └── questoes.php
+│   │
+│   └── views/                 # Apresentação
+│       ├── index.php          # Landing page
+│       ├── login.php
+│       ├── signup.php
+│       ├── home.php           # Dashboard
+│       ├── criacao_objetiva.php
+│       ├── criacao_dissertativa.php
+│       ├── editar_questao.php
+│       ├── questao_objetiva.php
+│       ├── questao_dissertativa.php
+│       └── abas/
+│           ├── questao_objetiva.php
+│           └── questao_dissertativa.php
+│
+├── README.md                  # Este arquivo
+└── INSTALACAO.md             # Guia de instalação
+```
+
+---
+
+## 📦 Instalação & Configuração
 
 ### Pré-requisitos
-- Node.js v16+ ou Python 3.8+
-- npm ou pip
+- PHP 7.4+
+- MySQL/MariaDB
+- Apache com `mod_rewrite` (opcional, mas recomendado)
 - Git
 
-### Setup Frontend
+### Passo 1: Clonar/Acessar o Repositório
 
 ```bash
-# Clonar repositório
-git clone https://github.com/seu-usuario/banco-questoes.git
-cd banco-questoes
-
-# Instalar dependências
-npm install
-
-# Iniciar servidor de desenvolvimento
-npm run dev
+cd "-portuges"
 ```
 
-### Setup Backend
+### Passo 2: Criar Banco de Dados
 
 ```bash
-# Instalar dependências (Python)
-pip install -r requirements.txt
-
-# Ou (Node.js)
-npm install
-
-# Configurar banco de dados
-# Adicionar variáveis de ambiente em .env
-
-# Iniciar servidor
-python app.py
-# Ou
-npm start
+# Via phpMyAdmin:
+1. Acesse http://localhost/phpmyadmin
+2. Clique em "Nova" para criar novo banco
+3. Nome do banco: `mais_portugues`
+4. Charset: utf8mb4_general_ci
+5. Clique em "Criar"
 ```
+
+### Passo 3: Importar Schema
+
+```bash
+# Via phpMyAdmin:
+1. Selecione o banco `mais_portugues`
+2. Vá para a aba "Importar"
+3. Cole o SQL abaixo ou importe do arquivo database/mais_portugues_corrigido.sql
+```
+
+**Script SQL:**
+
+```sql
+CREATE TABLE usuarios (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  email VARCHAR(255) UNIQUE NOT NULL,
+  senha VARCHAR(255) NOT NULL,
+  nome VARCHAR(255) NOT NULL,
+  criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  ultimo_login DATETIME
+);
+
+CREATE TABLE questoes (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  titulo VARCHAR(255) NOT NULL,
+  tipo ENUM('objetiva', 'dissertativa') NOT NULL,
+  status ENUM('rascunho', 'publicada') DEFAULT 'rascunho',
+  genero VARCHAR(100),
+  subgenero VARCHAR(100),
+  especificacao VARCHAR(255),
+  enunciado LONGTEXT,
+  explicacao LONGTEXT,
+  resposta_correta CHAR(1),
+  imagem VARCHAR(255),
+  id_usuario_criador INT NOT NULL,
+  criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (id_usuario_criador) REFERENCES usuarios(id) ON DELETE CASCADE
+);
+
+CREATE TABLE alternativas_objetivas (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  id_questao INT NOT NULL,
+  alternativa CHAR(1) NOT NULL,
+  texto LONGTEXT,
+  criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (id_questao) REFERENCES questoes(id) ON DELETE CASCADE
+);
+```
+
+### Passo 4: Verificar Configuração
+
+A configuração está em `/app/config/config.php` e já vem pronta para MySQL local:
+
+```php
+'servername' => 'localhost',
+'usuario'    => 'root',
+'senha'      => '',  // Deixe vazio se não tiver senha
+'banco'      => 'mais_portugues'
+```
+
+### Passo 5: Configurar Document Root (XAMPP)
+
+**No XAMPP:**
+1. Edite `C:\xampp\apache\conf\extra\httpd-vhosts.conf`
+2. Procure por `-portuges` e altere o `DocumentRoot`:
+   ```apache
+   DocumentRoot "C:/xampp/htdocs/-portuges/public"
+   <Directory "C:/xampp/htdocs/-portuges/public">
+   ```
+3. Reinicie Apache
+
+**Ou acesse direto:**
+- http://localhost/-portuges/public/
+
+### Passo 6: Criar Usuário de Teste
+
+Via phpMyAdmin ou SQL:
+
+```sql
+INSERT INTO usuarios (email, senha, nome) VALUES (
+  'teste@teste.com',
+  '$2y$10$6RYIekPXSIWWp7w7EF7WaOqF9HXEzaAMwFfGtDJZUlRZy7xP0NYxC',
+  'Usuário Teste'
+);
+```
+
+**Credenciais de Teste:**
+- Email: `teste@teste.com`
+- Senha: `Teste@123`
 
 ---
 
-## 🚀 Como Usar
+## 🗄️ Estrutura do Banco de Dados
 
-### Para Professores
+### Tabela: `usuarios`
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| id | INT (PK) | ID único auto-incremental |
+| email | VARCHAR UNIQUE | Email para login |
+| senha | VARCHAR | Hash da senha |
+| nome | VARCHAR | Nome do usuário |
+| criado_em | TIMESTAMP | Data de criação |
+| ultimo_login | DATETIME | Último acesso |
 
-1. **Criar Conta**
-   - Acesse a plataforma e registre-se com seu email
+### Tabela: `questoes`
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| id | INT (PK) | ID único auto-incremental |
+| titulo | VARCHAR | Título da questão |
+| tipo | ENUM | 'objetiva' ou 'dissertativa' |
+| status | ENUM | 'rascunho' ou 'publicada' |
+| genero | VARCHAR | Gênero textual |
+| subgenero | VARCHAR | Subcategoria |
+| especificacao | VARCHAR | Especificação customizada |
+| enunciado | LONGTEXT | Texto da questão |
+| explicacao | LONGTEXT | Explicação da resposta |
+| resposta_correta | CHAR | 'A' a 'E' (NULL para dissertativas) |
+| imagem | VARCHAR | Caminho da imagem em `/public/uploads/` |
+| id_usuario_criador | INT (FK) | Referência ao usuário criador |
+| criado_em | TIMESTAMP | Data de criação |
+| atualizado_em | TIMESTAMP | Última atualização |
 
-2. **Organizar Estrutura**
-   - Configure suas matérias
-   - Crie gêneros/assuntos customizados
-
-3. **Adicionar Questões**
-   - Clique em "Nova Questão"
-   - Preencha título, enunciado e resposta
-   - Categorize conforme sua estrutura criada
-
-4. **Filtrar e Buscar**
-   - Use os filtros para encontrar questões rapidamente
-   - Salve filtros customizados para acesso futuro
-
-5. **Exportar/Utilizar**
-   - Gere listas de questões para provas
-   - Exporte em diferentes formatos
+### Tabela: `alternativas_objetivas`
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| id | INT (PK) | ID único auto-incremental |
+| id_questao | INT (FK) | Referência à questão |
+| alternativa | CHAR | 'A', 'B', 'C', 'D' ou 'E' |
+| texto | LONGTEXT | Texto da alternativa |
+| criado_em | TIMESTAMP | Data de criação |
 
 ---
 
-## 📁 (Base) - Estrutura do Projeto
+## 🔄 Fluxo de Funcionamento
+
+### 1. Ponto de Entrada
+```
+http://localhost/Projeto+Portugues/public/
+  ↓
+index.php (Router central)
+  ↓
+Valida página via GET parameter (?page=login)
+  ↓
+Carrega view correspondente
+```
+
+### 2. API Endpoints (Routes)
+```
+POST /app/routes/login.php
+  → LoginController::fazer_login()
+  → Autentica e seta $_SESSION['usuario_id']
+  
+GET /app/routes/usuarios.php?acao=verificar_sessao
+  → SessaoController::verificar_sessao()
+  → Retorna dados da sessão ativa
+  
+POST /app/routes/questoes.php?acao=salvar
+  → QuestaoController::salvar()
+  → Cria ou atualiza questão (com FormData + imagem)
+  
+GET /app/routes/questoes.php?acao=listar
+  → QuestaoController::listar()
+  → Retorna questões do usuário logado
+```
+
+### 3. Segurança
+- ✅ Session iniciada em `config.php` (antes de qualquer output)
+- ✅ Prepared Statements em todos os Models
+- ✅ Validação de autenticação em controllers críticos
+- ✅ User isolation: Filtro `WHERE id_usuario_criador = ?` obrigatório
+- ✅ Password hash com PASSWORD_DEFAULT
+
+---
+
+## ✅ Status de Desenvolvimento
+
+### Funcionando 100%
+- [x] Autenticação (login/logout/signup)
+- [x] CRUD completo de questões
+- [x] Upload de imagens
+- [x] Busca e filtros
+- [x] Sessões seguras
+- [x] Isolamento de dados por usuário
+- [x] Roteador centralizado
+- [x] Arquitetura MVC limpa
+- [x] Responses JSON padronizadas
+
+### Próximas Melhorias
+- [ ] Testes automatizados
+- [ ] API REST documentada (Swagger)
+- [ ] Compartilhamento entre usuários
+- [ ] Exportação PDF
+- [ ] Relatórios estatísticos
+- [ ] Dark mode
+
+---
+
+## 🚀 Como Usar a Plataforma
+
+### 1. Registrar-se
+- Acesse a página principal
+- Clique em "Cadastre-se"
+- Preencha email, nome e senha
+
+### 2. Fazer Login
+- Email e senha registrados
+- Será redirecionado para o dashboard
+
+### 3. Criar Questão Objetiva
+- Clique em "+ Adicionar questão"
+- Escolha "Objetiva"
+- Preencha título, gênero, enunciado
+- Adicione 5 alternativas (A-E)
+- Escolha a resposta correta
+- (Opcional) Faça upload de imagem
+- Clique em "Salvar" ou "Postar"
+
+### 4. Criar Questão Dissertativa
+- Clique em "+ Adicionar questão"
+- Escolha "Dissertativa"
+- Preencha título, gênero, enunciado
+- (Opcional) Faça upload de imagem
+- Clique em "Salvar" ou "Postar"
+
+### 5. Buscar/Filtrar
+- Use a barra de busca no dashboard
+- Ou use os filtros disponíveis
+
+### 6. Editar Questão
+- Clique na questão na lista
+- Clique em "Editar"
+- Faça as alterações
+- Clique em "Salvar"
+
+### 7. Deletar Questão
+- Abra a questão
+- Clique em "Editar"
+- Clique em "Excluir"
+
+---
+
+## 📞 Suporte
+
+Para informações detalhadas:
+- **[📖 INSTALACAO.md](docs/INSTALACAO.md)** - Guia completo e passo a passo de instalação
+- **[🧪 TESTE_API.md](docs/TESTE_API.md)** - Exemplos de requisições e testes de endpoints
+- **[🏗️ MVC_DOCUMENTATION.md](docs/MVC_DOCUMENTATION.md)** - Documentação detalhada da arquitetura MVC
+
 
 ```
 banco-questoes/

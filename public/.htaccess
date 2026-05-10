@@ -1,0 +1,10 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    
+    # Se a requisição não é um arquivo real
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    
+    # Reescrever para index.php mantendo a query string
+    RewriteRule ^(.*)$ index.php [QSA,L]
+</IfModule>
