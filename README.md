@@ -1,6 +1,6 @@
 # 📚 +Português - Gerenciador de Questões
 
-Uma plataforma robusta para professores gerenciarem, organizarem e reutilizarem suas questões de forma eficiente com banco de dados centralizado.
+Uma plataforma robusta com arquitetura **MVC moderna** para professores gerenciarem, organizarem e reutilizarem suas questões de forma eficiente com banco de dados centralizado.
 
 ## 🎯 Objetivo
 
@@ -14,16 +14,24 @@ Criar uma solução inteligente que permite professores de todas as categorias d
 
 ---
 
-## ✨ Funcionalidades Implementadas
+## 📚 Documentação Rápida
+
+| Documento | Conteúdo |
+|-----------|----------|
+| **[📖 INSTALACAO.md](docs/INSTALACAO.md)** | Guia passo a passo: criar banco, importar SQL, configurar servidor |
+| **[🧪 TESTE_API.md](docs/TESTE_API.md)** | Exemplos de requisições cURL e testes de endpoints |
+| **[🏗️ MVC_DOCUMENTATION.md](docs/MVC_DOCUMENTATION.md)** | Documentação detalhada da arquitetura MVC e componentes |
+
+---
 
 ### 🔐 Autenticação & Segurança
 - ✅ Sistema de autenticação com email/senha
-- ✅ Hash seguro de senhas com `password_hash()`
-- ✅ Sessões PHP para manter usuário logado
-- ✅ Logout funcional
+- ✅ Hash seguro de senhas com `password_hash(PASSWORD_DEFAULT)`
+- ✅ Sessões PHP com configuração segura (httponly, samesite)
+- ✅ Logout funcional com session_destroy()
 - ✅ **Isolamento de dados por usuário** (cada usuário vê APENAS suas questões)
 - ✅ Suporte a cookies via `credentials: 'include'` em requisições fetch
-- ✅ Múltiplos usuários (professor/admin)
+- ✅ Múltiplos usuários (usuários independentes)
 
 ### 📋 Gerenciamento de Questões
 - ✅ Criar questões (objetivas e dissertativas)
@@ -32,7 +40,7 @@ Criar uma solução inteligente que permite professores de todas as categorias d
 - ✅ Deletar questões
 - ✅ Buscar questões por título/texto
 - ✅ Filtrar por tipo, gênero e status
-- ✅ Upload de imagens para questões
+- ✅ Upload de imagens para questões (JPEG, PNG, WebP, GIF)
 - ✅ Explicação detalhada para cada questão
 
 ### 🏷️ Tipos de Questões
@@ -41,7 +49,7 @@ Criar uma solução inteligente que permite professores de todas as categorias d
   - Resposta correta definida
   - Alternativas armazenadas em tabela separada
   
-- **Questões Dissertativas**
+- **Questões Dissertativa**
   - Enunciado e orientações para resposta
   - Explicação sobre a questão
 
@@ -56,14 +64,15 @@ Criar uma solução inteligente que permite professores de todas as categorias d
 ## 🛠️ Tech Stack
 
 ### Frontend
-- **HTML5** + **CSS3**
-- **JavaScript** (Vanilla JS)
+- **HTML5** + **CSS3** (Responsivo)
+- **JavaScript** (Vanilla JS com Fetch API)
 - **PHP** para renderização de templates
 
 ### Backend
-- **PHP 7.4+** com **MySQLi**
+- **PHP 7.4+** com **MySQLi OOP**
+- **Arquitetura MVC** (Models, Controllers, Views, Routes)
 - **API via PHP (endpoints HTTP)**
-- **Sessões PHP** para autenticação
+- **Sessões PHP** com configuração segura
 
 ### Banco de Dados
 - **MySQL 5.7+** ou **MariaDB**
@@ -71,6 +80,58 @@ Criar uma solução inteligente que permite professores de todas as categorias d
   - `usuarios` - Autenticação
   - `questoes` - Armazenamento de questões
   - `alternativas_objetivas` - Alternativas das questões múltipla escolha
+- **Prepared Statements** para prevenir SQL Injection
+
+---
+
+## 📁 Estrutura do Projeto (MVC)
+
+```
+Projeto +Portugues/
+├── public/                     # Document root (acessível via HTTP)
+│   ├── index.php              # Router central - ponto único de entrada
+│   ├── css/
+│   │   └── style.css          # Estilos consolidados
+│   └── uploads/               # Imagens das questões
+│
+├── app/
+│   ├── config/
+│   │   └── config.php         # Configuração global + helpers + autoloader
+│   │
+│   ├── models/                # Lógica de dados
+│   │   ├── Usuario.php        # Model de usuários
+│   │   ├── Questao.php        # Model de questões
+│   │   └── Alternativa.php    # Model de alternativas
+│   │
+│   ├── controllers/           # Lógica de negócio
+│   │   ├── LoginController.php
+│   │   ├── LogoutController.php
+│   │   ├── SessaoController.php
+│   │   └── QuestaoController.php
+│   │
+│   ├── routes/                # Endpoints HTTP
+│   │   ├── login.php
+│   │   ├── logout.php
+│   │   ├── usuarios.php
+│   │   └── questoes.php
+│   │
+│   └── views/                 # Apresentação
+│       ├── index.php          # Landing page
+│       ├── login.php
+│       ├── signup.php
+│       ├── home.php           # Dashboard
+│       ├── criacao_objetiva.php
+│       ├── criacao_dissertativa.php
+│       ├── editar_questao.php
+│       ├── questao_objetiva.php
+│       ├── questao_dissertativa.php
+│       └── abas/
+│           ├── questao_objetiva.php
+│           └── questao_dissertativa.php
+│
+├── README.md                  # Este arquivo
+└── INSTALACAO.md             # Guia de instalação
+```
 
 ---
 
@@ -79,13 +140,13 @@ Criar uma solução inteligente que permite professores de todas as categorias d
 ### Pré-requisitos
 - PHP 7.4+
 - MySQL/MariaDB
-- Servidor HTTP (Apache/Nginx) ou PHP built-in
+- Apache com `mod_rewrite` (opcional, mas recomendado)
 - Git
 
 ### Passo 1: Clonar/Acessar o Repositório
 
 ```bash
-cd portuges-feature-databese
+cd "Projeto +Portugues"
 ```
 
 ### Passo 2: Criar Banco de Dados
@@ -105,85 +166,89 @@ cd portuges-feature-databese
 # Via phpMyAdmin:
 1. Selecione o banco `mais_portugues`
 2. Vá para a aba "Importar"
-3. Selecione: database/mais_portugues_corrigido.sql
-4. Clique em "Executar"
+3. Cole o SQL abaixo ou importe do arquivo database/mais_portugues_corrigido.sql
 ```
 
-**OU via linha de comando:**
+**Script SQL:**
 
-```bash
-mysql -u root -p mais_portugues < database/mais_portugues_corrigido.sql
+```sql
+CREATE TABLE usuarios (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  email VARCHAR(255) UNIQUE NOT NULL,
+  senha VARCHAR(255) NOT NULL,
+  nome VARCHAR(255) NOT NULL,
+  criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  ultimo_login DATETIME
+);
+
+CREATE TABLE questoes (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  titulo VARCHAR(255) NOT NULL,
+  tipo ENUM('objetiva', 'dissertativa') NOT NULL,
+  status ENUM('rascunho', 'publicada') DEFAULT 'rascunho',
+  genero VARCHAR(100),
+  subgenero VARCHAR(100),
+  especificacao VARCHAR(255),
+  enunciado LONGTEXT,
+  explicacao LONGTEXT,
+  resposta_correta CHAR(1),
+  imagem VARCHAR(255),
+  id_usuario_criador INT NOT NULL,
+  criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (id_usuario_criador) REFERENCES usuarios(id) ON DELETE CASCADE
+);
+
+CREATE TABLE alternativas_objetivas (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  id_questao INT NOT NULL,
+  alternativa CHAR(1) NOT NULL,
+  texto LONGTEXT,
+  criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (id_questao) REFERENCES questoes(id) ON DELETE CASCADE
+);
 ```
 
 ### Passo 4: Verificar Configuração
 
-Edite `database/config.php` com suas credenciais MySQL:
+A configuração está em `/app/config/config.php` e já vem pronta para MySQL local:
 
 ```php
-$servername = "localhost";
-$usuario = "root";
-$senha = "sua_senha_aqui";  // Modifique se necessário
-$banco = "mais_portugues";
+'servername' => 'localhost',
+'usuario'    => 'root',
+'senha'      => '',  // Deixe vazio se não tiver senha
+'banco'      => 'mais_portugues'
 ```
 
-### Passo 5: Iniciar o Servidor
+### Passo 5: Configurar Document Root (XAMPP)
 
-```bash
-# Via PHP built-in (para desenvolvimento)
-php -S localhost:8000
+**No XAMPP:**
+1. Edite `C:\xampp\apache\conf\extra\httpd-vhosts.conf`
+2. Procure por `Projeto +Portugues` e altere o `DocumentRoot`:
+   ```apache
+   DocumentRoot "C:/xampp/htdocs/Projeto +Portugues/public"
+   <Directory "C:/xampp/htdocs/Projeto +Portugues/public">
+   ```
+3. Reinicie Apache
 
-# Ou acesse via Apache/Nginx
-http://localhost/caminho/para/projeto
+**Ou acesse direto:**
+- http://localhost/Projeto+Portugues/public/
+
+### Passo 6: Criar Usuário de Teste
+
+Via phpMyAdmin ou SQL:
+
+```sql
+INSERT INTO usuarios (email, senha, nome) VALUES (
+  'teste@teste.com',
+  '$2y$10$6RYIekPXSIWWp7w7EF7WaOqF9HXEzaAMwFfGtDJZUlRZy7xP0NYxC',
+  'Usuário Teste'
+);
 ```
 
----
-
-## 🔐 Credenciais Padrão
-
-### Usuário Admin (já inserido no banco)
-- **Email**: `admin@admin.com`
-- **Senha**: `123`
-
----
-
-## 📁 Estrutura do Projeto
-
-```
-portuges-feature-databese/
-├── beckend/                    # Backend PHP
-│   ├── config.php             # Configurações globais
-│   ├── helpers.php            # Classe BancoQuestoes (migrada para MySQL)
-│   ├── sessao.php             # Gerenciamento de sessão
-│   ├── login.php              # Autenticação
-│   ├── logout.php             # Saída do sistema
-│   ├── salvar_questao.php     # Criar/editar questões
-│   ├── listar_questoes.php    # Listar questões com filtros
-│   ├── buscar_questao.php     # Busca por ID
-│   ├── excluir_questao.php    # Deletar questões
-│   ├── questoes.json          # [Legado] Já não utilizado
-│   ├── uploads/               # Pasta para imagens das questões
-│   └── verificacao.php        # Verificações auxiliares
-│
-├── database/                   # Banco de Dados
-│   ├── config.php             # Conexão MySQL (corrigido)
-│   └── mais_portugues_corrigido.sql  # Schema atualizado
-│
-├── front/                      # Frontend
-│   ├── tela_de_login.php      # Página de login
-│   ├── home_page.php          # Dashboard principal
-│   ├── criacao_de_questao_objetiva.php
-│   ├── criacao_de_questao_dissertativa.php
-│   ├── editar_questao.php
-│   ├── aba_questao_objetiva.php
-│   ├── aba_questao_dissertativa.php
-│   ├── css/                    # Estilos
-│   └── js/                     # Scripts JavaScript
-│
-├── README.md                   # Este arquivo
-├── INSTALACAO.md              # Guia detalhado de instalação
-├── README_CORRECCOES.md       # Histórico de correções
-└── TESTE_API.md               # Exemplos de requisições
-```
+**Credenciais de Teste:**
+- Email: `teste@teste.com`
+- Senha: `Teste@123`
 
 ---
 
@@ -196,8 +261,6 @@ portuges-feature-databese/
 | email | VARCHAR UNIQUE | Email para login |
 | senha | VARCHAR | Hash da senha |
 | nome | VARCHAR | Nome do usuário |
-| tipo | ENUM | 'professor' ou 'admin' |
-| status | TINYINT | 0=inativo, 1=ativo |
 | criado_em | TIMESTAMP | Data de criação |
 | ultimo_login | DATETIME | Último acesso |
 
@@ -208,13 +271,13 @@ portuges-feature-databese/
 | titulo | VARCHAR | Título da questão |
 | tipo | ENUM | 'objetiva' ou 'dissertativa' |
 | status | ENUM | 'rascunho' ou 'publicada' |
-| genero | ENUM | Gênero textual |
+| genero | VARCHAR | Gênero textual |
 | subgenero | VARCHAR | Subcategoria |
 | especificacao | VARCHAR | Especificação customizada |
 | enunciado | LONGTEXT | Texto da questão |
 | explicacao | LONGTEXT | Explicação da resposta |
 | resposta_correta | CHAR | 'A' a 'E' (NULL para dissertativas) |
-| imagem | VARCHAR | Caminho da imagem |
+| imagem | VARCHAR | Caminho da imagem em `/public/uploads/` |
 | id_usuario_criador | INT (FK) | Referência ao usuário criador |
 | criado_em | TIMESTAMP | Data de criação |
 | atualizado_em | TIMESTAMP | Última atualização |
@@ -230,74 +293,121 @@ portuges-feature-databese/
 
 ---
 
-## 🔄 Status do Desenvolvimento
+## 🔄 Fluxo de Funcionamento
 
-### ✅ Concluído
-- [x] Schema MySQL simplificado e corrigido
-- [x] Backend PHP com MySQLi funcional
-- [x] Autenticação (login/logout)
+### 1. Ponto de Entrada
+```
+http://localhost/Projeto+Portugues/public/
+  ↓
+index.php (Router central)
+  ↓
+Valida página via GET parameter (?page=login)
+  ↓
+Carrega view correspondente
+```
+
+### 2. API Endpoints (Routes)
+```
+POST /app/routes/login.php
+  → LoginController::fazer_login()
+  → Autentica e seta $_SESSION['usuario_id']
+  
+GET /app/routes/usuarios.php?acao=verificar_sessao
+  → SessaoController::verificar_sessao()
+  → Retorna dados da sessão ativa
+  
+POST /app/routes/questoes.php?acao=salvar
+  → QuestaoController::salvar()
+  → Cria ou atualiza questão (com FormData + imagem)
+  
+GET /app/routes/questoes.php?acao=listar
+  → QuestaoController::listar()
+  → Retorna questões do usuário logado
+```
+
+### 3. Segurança
+- ✅ Session iniciada em `config.php` (antes de qualquer output)
+- ✅ Prepared Statements em todos os Models
+- ✅ Validação de autenticação em controllers críticos
+- ✅ User isolation: Filtro `WHERE id_usuario_criador = ?` obrigatório
+- ✅ Password hash com PASSWORD_DEFAULT
+
+---
+
+## ✅ Status de Desenvolvimento
+
+### Funcionando 100%
+- [x] Autenticação (login/logout/signup)
 - [x] CRUD completo de questões
-- [x] Suporte a questões objetivas (com alternativas A-E)
-- [x] Suporte a questões dissertativas
 - [x] Upload de imagens
 - [x] Busca e filtros
-- [x] Frontend com interface intuitiva
-- [x] Classe BancoQuestoes migrada para MySQL
+- [x] Sessões seguras
+- [x] Isolamento de dados por usuário
+- [x] Roteador centralizado
+- [x] Arquitetura MVC limpa
+- [x] Responses JSON padronizadas
 
-### 🔄 Em Progresso
-- [ ] Testes completos da API
-- [ ] Documentação de endpoints
-- [ ] Sistema de categorias/matérias adicional
-- [ ] Filtros avançados melhorados
-- [ ] Estatísticas e relatórios
+### Próximas Melhorias
+- [ ] Testes automatizados
+- [ ] API REST documentada (Swagger)
+- [ ] Compartilhamento entre usuários
+- [ ] Exportação PDF
+- [ ] Relatórios estatísticos
+- [ ] Dark mode
 
-### 📋 Planejado
-- [ ] Exportação de questões (PDF)
-- [ ] Importação em lote
-- [ ] Sistema de versioning de questões
-- [ ] Compartilhamento entre professores
-- [ ] Interface responsiva mobile
-- [ ] API RESTful documentada (Swagger)
+---
+
+## 🚀 Como Usar a Plataforma
+
+### 1. Registrar-se
+- Acesse a página principal
+- Clique em "Cadastre-se"
+- Preencha email, nome e senha
+
+### 2. Fazer Login
+- Email e senha registrados
+- Será redirecionado para o dashboard
+
+### 3. Criar Questão Objetiva
+- Clique em "+ Adicionar questão"
+- Escolha "Objetiva"
+- Preencha título, gênero, enunciado
+- Adicione 5 alternativas (A-E)
+- Escolha a resposta correta
+- (Opcional) Faça upload de imagem
+- Clique em "Salvar" ou "Postar"
+
+### 4. Criar Questão Dissertativa
+- Clique em "+ Adicionar questão"
+- Escolha "Dissertativa"
+- Preencha título, gênero, enunciado
+- (Opcional) Faça upload de imagem
+- Clique em "Salvar" ou "Postar"
+
+### 5. Buscar/Filtrar
+- Use a barra de busca no dashboard
+- Ou use os filtros disponíveis
+
+### 6. Editar Questão
+- Clique na questão na lista
+- Clique em "Editar"
+- Faça as alterações
+- Clique em "Salvar"
+
+### 7. Deletar Questão
+- Abra a questão
+- Clique em "Editar"
+- Clique em "Excluir"
 
 ---
 
 ## 📞 Suporte
 
-Para testes e documentação detalhada de endpoints, consulte:
-- **INSTALACAO.md** - Guia passo a passo
-- **README_CORRECCOES.md** - Histórico de mudanças
-- **TESTE_API.md** - Exemplos de requisições cURL
-```
+Para informações detalhadas:
+- **[📖 INSTALACAO.md](docs/INSTALACAO.md)** - Guia completo e passo a passo de instalação
+- **[🧪 TESTE_API.md](docs/TESTE_API.md)** - Exemplos de requisições e testes de endpoints
+- **[🏗️ MVC_DOCUMENTATION.md](docs/MVC_DOCUMENTATION.md)** - Documentação detalhada da arquitetura MVC
 
----
-
-## 🚀 Como Usar
-
-### Para Professores
-
-1. **Criar Conta**
-   - Acesse a plataforma e registre-se com seu email
-
-2. **Organizar Estrutura**
-   - Configure suas matérias
-   - Crie gêneros/assuntos customizados
-
-3. **Adicionar Questões**
-   - Clique em "Nova Questão"
-   - Preencha título, enunciado e resposta
-   - Categorize conforme sua estrutura criada
-
-4. **Filtrar e Buscar**
-   - Use os filtros para encontrar questões rapidamente
-   - Salve filtros customizados para acesso futuro
-
-5. **Exportar/Utilizar**
-   - Gere listas de questões para provas
-   - Exporte em diferentes formatos
-
----
-
-## 📁 (Base) - Estrutura do Projeto
 
 ```
 banco-questoes/
