@@ -13,16 +13,18 @@ class QuestaoController {
         try {
             $id_usuario = verificarAutenticacao();
             
-            $busca = $_GET['busca'] ?? '';
-            $tipo = $_GET['tipo'] ?? '';
-            $status = $_GET['status'] ?? '';
-            $genero = $_GET['genero'] ?? '';
+            $busca = trim($_GET['busca'] ?? '');
+            $tipo = trim($_GET['tipo'] ?? '');
+            $status = trim($_GET['status'] ?? '');
+            $genero = trim($_GET['genero'] ?? '');
+            $subgenero = trim($_GET['subgenero'] ?? '');
             
             $filtros = [];
             $filtros['id_usuario_criador'] = $id_usuario;
             if (!empty($tipo)) $filtros['tipo'] = $tipo;
             if (!empty($status)) $filtros['status'] = $status;
             if (!empty($genero)) $filtros['genero'] = $genero;
+            if (!empty($subgenero)) $filtros['subgenero'] = $subgenero;
             
             $questoes = Questao::listar($filtros);
             

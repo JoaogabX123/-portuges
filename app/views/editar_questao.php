@@ -67,10 +67,7 @@ if (!isset($_SESSION['usuario_id'])) {
             const alt = q.alternativas || {};
             const tipo = q.tipo;
 
-            const generoOpts = ['narrativo','argumentativo','descritivo','expositivo','instrucional']
-                .map(g => `<option value="${g}" ${q.genero === g ? 'selected' : ''}>${g.charAt(0).toUpperCase()+g.slice(1)}</option>`)
-                .join('');
-
+            const generoValor = q.genero || '';
             const imgSrc = q.imagem ? `${BASE_URL}public/${q.imagem}` : '';
             const imgStyle = q.imagem ? '' : 'display:none';
             const phStyle = q.imagem ? 'display:none' : '';
@@ -143,10 +140,7 @@ if (!isset($_SESSION['usuario_id'])) {
 
                 <div class="campo">
                     <label>Gênero</label>
-                    <select id="genero">
-                        <option value="" disabled>Selecione o gênero...</option>
-                        ${generoOpts}
-                    </select>
+                    <input type="text" id="genero" value="${generoValor}" placeholder="Digite o gênero da questão...">
                 </div>
 
                 ${secaoObj}

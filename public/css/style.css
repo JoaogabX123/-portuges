@@ -85,6 +85,22 @@ header h1 {
     margin-bottom: 15px;
 }
 
+.filtros {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.filtros input {
+    outline: none;
+    padding: 10px;
+    width: 220px;
+    border: none;
+    border-radius: var(--border-radius);
+}
+
 header input {
     margin-top: 10px;
     outline: none;

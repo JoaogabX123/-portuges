@@ -35,14 +35,7 @@ if (!isset($_SESSION['usuario_id'])) {
 
                 <div class="campo">
                     <label>Gênero</label>
-                    <select id="genero">
-                        <option value="" disabled selected>Selecione o gênero...</option>
-                        <option value="narrativo">Narrativo</option>
-                        <option value="argumentativo">Argumentativo</option>
-                        <option value="descritivo">Descritivo</option>
-                        <option value="expositivo">Expositivo</option>
-                        <option value="instrucional">Instrucional</option>
-                    </select>
+                    <input type="text" id="genero" placeholder="Digite o gênero da questão...">
                 </div>
 
                 <div class="campo">

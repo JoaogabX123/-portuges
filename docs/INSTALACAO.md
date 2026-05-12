@@ -89,12 +89,12 @@ Se suas credenciais MySQL forem diferentes, edite o arquivo acima.
 
 ### URL Principal
 ```
-http://localhost/Projeto%20+Portugues/
+http://localhost/-portuges/public/
 ```
 
 Ou direto no login:
 ```
-http://localhost/Projeto%20+Portugues/front/tela_de_login.php
+http://localhost/-portuges/public/index.php?page=login
 ```
 
 ---
@@ -103,9 +103,7 @@ http://localhost/Projeto%20+Portugues/front/tela_de_login.php
 
 ### Teste Automatizado
 
-```
-http://localhost/Projeto%20+Portugues/beckend/teste_completo.php
-```
+> Nota: o arquivo de teste `teste_completo.php` não existe nesta versão. Use a aplicação normalmente pelo navegador para validar o login e a lista de questões.
 
 Este teste verifica automaticamente:
 - ✅ Login de novo usuário → vê 1 questão

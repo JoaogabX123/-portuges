@@ -146,7 +146,7 @@ Projeto +Portugues/
 ### Passo 1: Clonar/Acessar o Repositório
 
 ```bash
-cd "Projeto +Portugues"
+cd "-portuges"
 ```
 
 ### Passo 2: Criar Banco de Dados
@@ -224,15 +224,15 @@ A configuração está em `/app/config/config.php` e já vem pronta para MySQL l
 
 **No XAMPP:**
 1. Edite `C:\xampp\apache\conf\extra\httpd-vhosts.conf`
-2. Procure por `Projeto +Portugues` e altere o `DocumentRoot`:
+2. Procure por `-portuges` e altere o `DocumentRoot`:
    ```apache
-   DocumentRoot "C:/xampp/htdocs/Projeto +Portugues/public"
-   <Directory "C:/xampp/htdocs/Projeto +Portugues/public">
+   DocumentRoot "C:/xampp/htdocs/-portuges/public"
+   <Directory "C:/xampp/htdocs/-portuges/public">
    ```
 3. Reinicie Apache
 
 **Ou acesse direto:**
-- http://localhost/Projeto+Portugues/public/
+- http://localhost/-portuges/public/
 
 ### Passo 6: Criar Usuário de Teste
 

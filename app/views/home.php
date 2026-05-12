@@ -23,7 +23,11 @@ if (!isset($_SESSION['usuario_id'])) {
 <body>
     <header>
         <h1>+Português</h1>
-        <input type="text" id="campo_busca" placeholder="Pesquisar questão..." oninput="carregarQuestoes()">
+        <div class="filtros">
+            <input type="text" id="campo_busca" placeholder="Pesquisar questão..." oninput="carregarQuestoes()">
+            <input type="text" id="filtro_genero" placeholder="Filtrar por gênero" oninput="carregarQuestoes()">
+            <input type="text" id="filtro_subgenero" placeholder="Filtrar por subgênero" oninput="carregarQuestoes()">
+        </div>
         <button class="btn-logout" onclick="fazerLogout()">Sair</button>
     </header>
 
@@ -95,8 +99,15 @@ if (!isset($_SESSION['usuario_id'])) {
             
             carregandoQuestoes = true;
             try {
-                const busca = document.getElementById('campo_busca').value;
-                const url = `${BASE_URL}app/routes/questoes.php?acao=listar&busca=${encodeURIComponent(busca)}`;
+                const busca = document.getElementById('campo_busca').value.trim();
+                const genero = document.getElementById('filtro_genero').value.trim();
+                const subgenero = document.getElementById('filtro_subgenero').value.trim();
+                const params = new URLSearchParams();
+                params.set('acao', 'listar');
+                params.set('busca', busca);
+                if (genero) params.set('genero', genero);
+                if (subgenero) params.set('subgenero', subgenero);
+                const url = `${BASE_URL}app/routes/questoes.php?${params.toString()}`;
                 
                 console.log('🔗 Requisição:', url);
                 const res = await fetch(url, { credentials: 'include' });
@@ -128,12 +139,15 @@ if (!isset($_SESSION['usuario_id'])) {
                 lista.innerHTML = questoes.map(q => `
                     <div class="questao-card"
                          onclick="window.location='./?page=questao_${q.tipo}&id=${encodeURIComponent(q.id)}'">
-                        <span>
-                            ${q.titulo || '(sem título)'}
+                        <div class="questao-info">
+                            <span class="questao-titulo">${q.titulo || '(sem título)'}</span>
                             <span class="tipo-badge">${q.tipo}</span>
                             ${q.status === 'rascunho' ? '<span class="badge-rascunho">rascunho</span>' : ''}
-                        </span>
-                        <button class="genero-btn">${q.genero || '-'}</button>
+                        </div>
+                        <div class="genero-tags">
+                            <button class="genero-btn">${q.genero || '-'}</button>
+                            ${q.subgenero ? `<span class="subgenero-text">${q.subgenero}</span>` : ''}
+                        </div>
                     </div>
                 `).join('');
             } catch (e) {

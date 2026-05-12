@@ -75,7 +75,7 @@ define('APP_ROOT', dirname(dirname(__DIR__)));
 define('APP_PATH', APP_ROOT . '/app');
 define('PUBLIC_PATH', APP_ROOT . '/public');
 define('UPLOADS_PATH', PUBLIC_PATH . '/uploads');
-define('BASE_URL', '/Projeto%20+Portugues/');
+define('BASE_URL', '/-portuges/');
 
 // ============================================
 // 5. CONFIGURAÇÕES DE UPLOAD
