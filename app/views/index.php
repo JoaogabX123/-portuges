@@ -176,6 +176,19 @@ if (isset($_SESSION['usuario_id'])) {
             text-align: center;
             padding: 18px;
             font-size: 13px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        footer a {
+            color: #82caff;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        footer a:hover {
+            color: #fff;
         }
     </style>
 </head>
@@ -211,7 +224,11 @@ if (isset($_SESSION['usuario_id'])) {
 
 <footer>
     <p>&copy; 2024 +Português. Todos os direitos reservados.</p>
+    <p>
+        <a href="info.php">Info</a> ·
+        <a href="termos.php">Termos de Uso</a> ·
+        <a href="configuracoes.php">Configurações</a>
+    </p>
 </footer>
-
 </body>
 </html>

@@ -85,6 +85,79 @@ header h1 {
     margin-bottom: 15px;
 }
 
+.usuario-menu {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    z-index: 10;
+}
+
+.btn-usuario {
+    width: 50px;
+    height: 50px;
+    padding: 0;
+    background: white;
+    color: rgba(10, 10, 10, 0.95);
+    border: none;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    cursor: pointer;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.18);
+    transition: transform var(--transition), box-shadow var(--transition);
+}
+
+.btn-usuario:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 14px 28px rgba(0, 0, 0, 0.24);
+}
+
+.dropdown-usuario {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 14px);
+    width: 220px;
+    background: rgba(15, 25, 40, 0.98);
+    border-radius: 18px;
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.25);
+    overflow: hidden;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: opacity var(--transition), transform var(--transition), visibility var(--transition);
+}
+
+.usuario-menu:hover .dropdown-usuario,
+.usuario-menu:focus-within .dropdown-usuario {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.dropdown-usuario a {
+    display: block;
+    padding: 12px 18px;
+    color: #eef6ff;
+    font-size: 0.95rem;
+    transition: background var(--transition);
+}
+
+.dropdown-usuario a:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.dropdown-usuario hr {
+    margin: 0;
+    border: 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.logout-option {
+    color: #f8d7da;
+}
+
 .filtros {
     display: flex;
     flex-wrap: wrap;
