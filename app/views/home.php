@@ -253,6 +253,13 @@ if (!isset($_SESSION['usuario_id'])) {
     <script>
 
         let carregandoQuestoes = false;
+        let questaoAtualParaExcluir = null;
+        let questaoAtualParaEnviar = null;
+
+        let questaoAtualParaExcluir = null;
+
+        let questaoAtualParaEnviar = null;
+
 
         let questaoAtualParaExcluir = null;
 

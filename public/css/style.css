@@ -996,6 +996,171 @@ main {
 }
 
 /* ============================================
+   MENU DE USUÁRIO
+   ============================================ */
+
+.usuario-menu {
+    position: absolute;
+    top: 50%;
+    right: 20px;
+    transform: translateY(-50%);
+}
+
+.btn-usuario {
+    background: var(--color-danger);
+    color: white;
+    border: none;
+    padding: 8px 14px;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    font-size: 20px;
+    transition: background var(--transition);
+    position: relative;
+    z-index: 101;
+}
+
+.btn-usuario:hover {
+    background: var(--color-danger-hover);
+}
+
+.dropdown-usuario {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: var(--border-radius-lg);
+    padding: 10px 0;
+    margin-top: 5px;
+    min-width: 180px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    display: none;
+    flex-direction: column;
+    z-index: 102;
+}
+
+.dropdown-usuario.ativo {
+    display: flex;
+}
+
+.dropdown-usuario a {
+    display: block;
+    padding: 12px 16px;
+    color: #333;
+    text-decoration: none;
+    transition: background var(--transition);
+    border: none;
+    background: none;
+    cursor: pointer;
+    text-align: left;
+    font-size: 14px;
+    font-family: var(--font-family);
+}
+
+.dropdown-usuario a:hover {
+    background: rgb(240, 245, 250);
+    text-decoration: none;
+}
+
+.dropdown-usuario hr {
+    margin: 5px 0;
+    border: none;
+    border-top: 1px solid #eee;
+}
+
+.dropdown-usuario .logout-option {
+    color: var(--color-danger);
+}
+
+.dropdown-usuario .logout-option:hover {
+    background: rgba(200, 50, 50, 0.1);
+}
+
+/* ============================================
+   QUESTÕES - AÇÕES
+   ============================================ */
+
+.questao-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding: 15px;
+    border-bottom: 1px solid var(--color-border);
+    cursor: default;
+    border-radius: var(--border-radius);
+    transition: background var(--transition);
+    gap: 15px;
+}
+
+.questao-card:hover {
+    background: rgb(240, 245, 255);
+}
+
+.questao-info {
+    flex: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.questao-titulo {
+    font-weight: 500;
+    color: #333;
+}
+
+.genero-tags {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 150px;
+}
+
+.subgenero-text {
+    font-size: 13px;
+    color: #666;
+}
+
+.questao-acoes {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.btn-acoes {
+    padding: 8px 12px;
+    font-size: 12px;
+    border: none;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: all var(--transition);
+    white-space: nowrap;
+}
+
+.btn-acoes.enviar {
+    background: var(--color-primary);
+    color: white;
+}
+
+.btn-acoes.enviar:hover {
+    background: var(--color-primary-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(60, 141, 248, 0.3);
+}
+
+.btn-acoes.excluir {
+    background: var(--color-danger);
+    color: white;
+}
+
+.btn-acoes.excluir:hover {
+    background: var(--color-danger-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(200, 50, 50, 0.3);
+}
+
+/* ============================================
    RESPONSIVE
    ============================================ */
 
@@ -1012,6 +1177,20 @@ main {
         width: 90%;
         max-width: 360px;
     }
+
+    .questao-card {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .questao-acoes {
+        width: 100%;
+        margin-top: 10px;
+    }
+
+    .btn-acoes {
+        flex: 1;
+    }
 }
 
 @media (max-width: 768px) {
@@ -1019,15 +1198,40 @@ main {
         width: 100%;
     }
 
-    .btn-logout {
+    .usuario-menu {
         position: static;
         transform: none;
-        width: 100%;
         margin-top: 10px;
+    }
+
+    .btn-usuario {
+        width: 100%;
+    }
+
+    .dropdown-usuario {
+        position: static;
+        margin-top: 10px;
+        display: flex;
     }
 
     main, .container-form main {
         width: 100%;
         padding: 0 20px;
+    }
+
+    .questao-card {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .questao-acoes {
+        width: 100%;
+        margin-top: 10px;
+    }
+
+    .btn-acoes {
+        flex: 1;
+        font-size: 11px;
+        padding: 6px 10px;
     }
 }

@@ -169,7 +169,7 @@ if (!isset($_SESSION['usuario_id'])) {
                 </div>
 
                 <div class="botoes">
-                    <button class="btn btn-excluir" onclick="excluir()">Excluir</button>
+                    <button class="btn btn-excluir" onclick="abrirModalConfirmacaoExcluir()">Excluir</button>
                     <button class="btn btn-cancelar" onclick="history.back()">Cancelar</button>
                     <button class="btn btn-salvar" onclick="enviar('salvar')">Salvar</button>
                     <button class="btn btn-postar"  onclick="enviar('postar')">Postar</button>
@@ -267,9 +267,15 @@ if (!isset($_SESSION['usuario_id'])) {
             }
         }
 
-        async function excluir() {
-            if (!confirm('Tem certeza que deseja excluir esta questão?')) return;
-            
+        function abrirModalConfirmacaoExcluir() {
+            document.getElementById('modal_confirmacao_editar').classList.add('ativo');
+        }
+
+        function fecharModalConfirmacaoEditar() {
+            document.getElementById('modal_confirmacao_editar').classList.remove('ativo');
+        }
+
+        async function confirmarExcluirEditar() {
             try {
                 const res = await fetch(`${BASE_URL}app/routes/questoes.php?acao=deletar`, {
                     method: 'POST',
@@ -277,9 +283,9 @@ if (!isset($_SESSION['usuario_id'])) {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ id })
                 });
-                
+
                 const data = await res.json();
-                
+
                 if (data.ok) {
                     window.location.href = './?page=home&msg=excluida';
                 } else {
@@ -290,5 +296,16 @@ if (!isset($_SESSION['usuario_id'])) {
             }
         }
     </script>
+
+    <div class="modal-overlay" id="modal_confirmacao_editar">
+        <div class="modal">
+            <h2>Confirmar Exclusão</h2>
+            <p style="margin-bottom: 20px; color: #666;">Tem certeza que deseja excluir esta questão? Esta ação não pode ser desfeita.</p>
+            <div class="modal-botoes" style="gap: 10px;">
+                <button class="btn excluir" onclick="confirmarExcluirEditar()" style="flex: 1;">Excluir</button>
+                <button class="btn cancelar" onclick="fecharModalConfirmacaoEditar()" style="flex: 1;">Cancelar</button>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
