@@ -298,6 +298,11 @@ if (!isset($_SESSION['usuario_id'])) {
         let questaoAtualParaEnviar = null;
 
 
+        let questaoAtualParaExcluir = null;
+
+        let questaoAtualParaEnviar = null;
+
+
         window.addEventListener('DOMContentLoaded', async () => {
 
             try {
