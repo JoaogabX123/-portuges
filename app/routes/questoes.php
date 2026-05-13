@@ -27,6 +27,7 @@ try {
             break;
         
         case 'deletar':
+        case 'excluir':
             QuestaoController::deletar();
             break;
         

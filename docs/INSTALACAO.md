@@ -90,7 +90,7 @@ Se suas credenciais MySQL forem diferentes, edite o arquivo acima.
 
 ### URL Principal
 ```
-http://localhost/-portuges/public/
+http://localhost/+portuges/public/
 ```
 
 Ou direto no login:

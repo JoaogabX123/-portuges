@@ -70,16 +70,16 @@ class Questao {
         
         // Filtro por gênero
         if (!empty($filtros['genero'])) {
-            $query .= " AND LOWER(TRIM(genero)) = LOWER(TRIM(?))";
+            $query .= " AND LOWER(TRIM(genero)) LIKE LOWER(TRIM(?))";
             $tipos .= "s";
-            $params[] = trim($filtros['genero']);
+            $params[] = '%' . trim($filtros['genero']) . '%';
         }
         
         // Filtro por subgênero
         if (!empty($filtros['subgenero'])) {
-            $query .= " AND LOWER(TRIM(subgenero)) = LOWER(TRIM(?))";
+            $query .= " AND LOWER(TRIM(subgenero)) LIKE LOWER(TRIM(?))";
             $tipos .= "s";
-            $params[] = trim($filtros['subgenero']);
+            $params[] = '%' . trim($filtros['subgenero']) . '%';
         }
         
         $query .= " ORDER BY criado_em DESC";

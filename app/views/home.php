@@ -250,9 +250,53 @@ if (!isset($_SESSION['usuario_id'])) {
         </div>
     </div>
 
+    <!-- Modal de Envio -->
+    <div class="modal-overlay" id="modal_envio">
+        <div class="modal">
+            <h2>Enviar Questão</h2>
+            <div class="formulario">
+                <div class="campo">
+                    <label for="email_destinatario">Email do Destinatário:</label>
+                    <input type="email" id="email_destinatario" placeholder="exemplo@email.com">
+                </div>
+                <div class="campo">
+                    <label for="descricao_envio">Descrição do Envio:</label>
+                    <textarea id="descricao_envio" placeholder="Descreva o motivo ou contexto do envio..." style="height: 80px;"></textarea>
+                </div>
+                <div class="campo">
+                    <label for="questao_envio">Questão:</label>
+                    <textarea id="questao_envio" placeholder="Conteúdo da questão..." style="height: 100px;" disabled></textarea>
+                </div>
+            </div>
+            <div class="modal-botoes" style="margin-top: 20px; gap: 10px;">
+                <button class="btn salvar" onclick="enviarQuestao()">Enviar</button>
+                <button class="btn cancelar" onclick="fecharModalEnvio()">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Confirmação de Exclusão -->
+    <div class="modal-overlay" id="modal_confirmacao_excluir">
+        <div class="modal">
+            <h2>Confirmar Exclusão</h2>
+            <p style="margin-bottom: 20px; color: #666;">Tem certeza que deseja excluir esta questão? Esta ação não pode ser desfeita.</p>
+            <div class="modal-botoes" style="gap: 10px;">
+                <button class="btn excluir" onclick="confirmarExcluir()" style="flex: 1;">Excluir</button>
+                <button class="btn cancelar" onclick="fecharModalConfirmacao()" style="flex: 1;">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
     <script>
 
         let carregandoQuestoes = false;
+        let questaoAtualParaExcluir = null;
+        let questaoAtualParaEnviar = null;
+
+        let questaoAtualParaExcluir = null;
+
+        let questaoAtualParaEnviar = null;
+
 
         let questaoAtualParaExcluir = null;
 
