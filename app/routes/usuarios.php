@@ -21,6 +21,18 @@ try {
         case 'criar':
             SessaoController::criar_usuario();
             break;
+
+        case 'atualizar_perfil':
+            SessaoController::atualizar_perfil();
+            break;
+
+        case 'alterar_senha':
+            SessaoController::alterar_senha();
+            break;
+
+        case 'salvar_recuperacao':
+            SessaoController::salvar_recuperacao();
+            break;
         
         default:
             resposta_erro('Ação não reconhecida', 400);

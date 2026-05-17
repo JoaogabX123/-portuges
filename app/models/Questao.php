@@ -8,15 +8,25 @@ class Questao {
     /**
      * Encontrar questão por ID
      */
-    public static function buscarPorId($id) {
+    public static function buscarPorId($id, $idUsuario = null) {
         global $conexao;
-        
-        $stmt = $conexao->prepare("SELECT * FROM questoes WHERE id = ?");
+
+        $query = "SELECT * FROM questoes WHERE id = ?";
+        $tipos = "i";
+        $params = [(int)$id];
+
+        if ($idUsuario !== null) {
+            $query .= " AND id_usuario_criador = ?";
+            $tipos .= "i";
+            $params[] = (int)$idUsuario;
+        }
+
+        $stmt = $conexao->prepare($query);
         if (!$stmt) {
             throw new Exception('Erro ao preparar query: ' . $conexao->error);
         }
-        
-        $stmt->bind_param("i", $id);
+
+        $stmt->bind_param($tipos, ...$params);
         $stmt->execute();
         $resultado = $stmt->get_result();
         
@@ -156,17 +166,21 @@ class Questao {
         $conexao->begin_transaction();
         
         try {
-            $tipo = $questao['tipo'];
-            $status = $questao['status'];
-            $titulo = sanitizarTexto($questao['titulo']);
-            $genero = sanitizarTexto($questao['genero']);
-            $subgenero = isset($questao['subgenero']) ? sanitizarTexto($questao['subgenero']) : null;
-            $especificacao = isset($questao['especificacao']) ? sanitizarTexto($questao['especificacao']) : null;
-            $enunciado = sanitizarTexto($questao['enunciado']);
-            $explicacao = isset($questao['explicacao']) ? sanitizarTexto($questao['explicacao']) : null;
-            $resposta_correta = isset($questao['correta']) ? $questao['correta'] : null;
-            $imagem = $questao['imagem'] ?? null;
-            $id_usuario = $questao['id_usuario_criador'];
+            $tipo = $questao['tipo'] ?? 'objetiva';
+            $status = $questao['status'] ?? 'rascunho';
+            $titulo = sanitizarTexto($questao['titulo'] ?? '');
+            $genero = sanitizarTexto($questao['genero'] ?? '');
+            $subgenero = sanitizarTexto($questao['subgenero'] ?? '');
+            $especificacao = sanitizarTexto($questao['especificacao'] ?? '');
+            $enunciado = sanitizarTexto($questao['enunciado'] ?? '');
+            $explicacao = sanitizarTexto($questao['explicacao'] ?? '');
+            $resposta_correta = !empty($questao['correta']) ? $questao['correta'] : null;
+            $imagem = !empty($questao['imagem']) ? $questao['imagem'] : null;
+            $id_usuario = (int)($questao['id_usuario_criador'] ?? 0);
+            
+            if (empty($titulo) || empty($genero) || empty($enunciado) || !$id_usuario) {
+                throw new Exception('Dados obrigatórios faltando: titulo, genero, enunciado, usuario');
+            }
             
             // Inserir questão
             $stmt = $conexao->prepare(
@@ -193,7 +207,7 @@ class Questao {
             $stmt->close();
             
             // Inserir alternativas se for objetiva
-            if ($tipo === 'objetiva' && isset($questao['alternativas'])) {
+            if ($tipo === 'objetiva' && isset($questao['alternativas']) && is_array($questao['alternativas'])) {
                 Alternativa::inserirMultiplas($idQuestao, $questao['alternativas']);
             }
             
@@ -217,16 +231,21 @@ class Questao {
         $conexao->begin_transaction();
         
         try {
-            $tipo = $dados['tipo'];
-            $status = $dados['status'];
-            $titulo = sanitizarTexto($dados['titulo']);
-            $genero = sanitizarTexto($dados['genero']);
-            $subgenero = isset($dados['subgenero']) ? sanitizarTexto($dados['subgenero']) : null;
-            $especificacao = isset($dados['especificacao']) ? sanitizarTexto($dados['especificacao']) : null;
-            $enunciado = sanitizarTexto($dados['enunciado']);
-            $explicacao = isset($dados['explicacao']) ? sanitizarTexto($dados['explicacao']) : null;
-            $resposta_correta = isset($dados['correta']) ? $dados['correta'] : null;
-            $imagem = $dados['imagem'] ?? null;
+            $id = (int)$id;
+            $tipo = $dados['tipo'] ?? 'objetiva';
+            $status = $dados['status'] ?? 'rascunho';
+            $titulo = sanitizarTexto($dados['titulo'] ?? '');
+            $genero = sanitizarTexto($dados['genero'] ?? '');
+            $subgenero = sanitizarTexto($dados['subgenero'] ?? '');
+            $especificacao = sanitizarTexto($dados['especificacao'] ?? '');
+            $enunciado = sanitizarTexto($dados['enunciado'] ?? '');
+            $explicacao = sanitizarTexto($dados['explicacao'] ?? '');
+            $resposta_correta = !empty($dados['correta']) ? $dados['correta'] : null;
+            $imagem = !empty($dados['imagem']) ? $dados['imagem'] : null;
+            
+            if (empty($titulo) || empty($genero) || empty($enunciado) || !$id) {
+                throw new Exception('Dados obrigatórios faltando ou ID inválido');
+            }
             
             // Atualizar questão
             $stmt = $conexao->prepare(
@@ -256,7 +275,7 @@ class Questao {
             if ($tipo === 'objetiva') {
                 Alternativa::deletarPorQuestao($id);
                 
-                if (isset($dados['alternativas'])) {
+                if (isset($dados['alternativas']) && is_array($dados['alternativas'])) {
                     Alternativa::inserirMultiplas($id, $dados['alternativas']);
                 }
             }

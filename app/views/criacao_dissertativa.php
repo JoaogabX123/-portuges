@@ -17,7 +17,7 @@ if (!isset($_SESSION['usuario_id'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>+ Adicionar Questão Dissertativa</title>
     <link rel="stylesheet" href="./css/style.css">
-    <script>const BASE_URL = '<?php echo BASE_URL; ?>';</script>
+    <script>const BASE_URL = '<?php echo BASE_URL; ?>'; const API_URL = '<?php echo API_URL; ?>'; const UPLOAD_URL = '<?php echo UPLOAD_URL; ?>';</script>
 </head>
 <body>
     <div class="container-form">
@@ -111,7 +111,7 @@ if (!isset($_SESSION['usuario_id'])) {
             if (arquivo) fd.append('imagem', arquivo);
 
             try {
-                const res = await fetch(`${BASE_URL}app/routes/questoes.php?acao=salvar`, {
+                const res = await fetch(`${API_URL}questoes&acao=salvar`, {
                     method: 'POST',
                     credentials: 'include',
                     body: fd

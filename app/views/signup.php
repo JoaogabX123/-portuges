@@ -17,7 +17,7 @@ if (isset($_SESSION['usuario_id'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cadastro - +Português</title>
     <link rel="stylesheet" href="./css/style.css">
-    <script>const BASE_URL = '<?php echo BASE_URL; ?>';</script>
+    <script>const BASE_URL = '<?php echo BASE_URL; ?>'; const API_URL = '<?php echo API_URL; ?>'; const UPLOAD_URL = '<?php echo UPLOAD_URL; ?>';</script>
 </head>
 <body>
     <div class="container-form">
@@ -115,7 +115,7 @@ if (isset($_SESSION['usuario_id'])) {
             el_erro.style.display = 'none';
 
             try {
-                const res = await fetch(`${BASE_URL}app/routes/usuarios.php?acao=criar`, {
+                const res = await fetch(`${API_URL}usuarios&acao=criar`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ nome, email, senha })

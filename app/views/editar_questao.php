@@ -17,7 +17,7 @@ if (!isset($_SESSION['usuario_id'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>+ Editar questão</title>
     <link rel="stylesheet" href="./css/style.css">
-    <script>const BASE_URL = '<?php echo BASE_URL; ?>';</script>
+    <script>const BASE_URL = '<?php echo BASE_URL; ?>'; const API_URL = '<?php echo API_URL; ?>'; const UPLOAD_URL = '<?php echo UPLOAD_URL; ?>';</script>
 </head>
 <body>
     <div class="container-form">
@@ -45,7 +45,7 @@ if (!isset($_SESSION['usuario_id'])) {
             }
 
             try {
-                const res = await fetch(`${BASE_URL}app/routes/questoes.php?acao=buscar&id=${encodeURIComponent(id)}`, {
+                const res = await fetch(`${API_URL}questoes&acao=buscar&id=${encodeURIComponent(id)}`, {
                     credentials: 'include'
                 });
                 
@@ -68,7 +68,7 @@ if (!isset($_SESSION['usuario_id'])) {
             const tipo = q.tipo;
 
             const generoValor = q.genero || '';
-            const imgSrc = q.imagem ? `${BASE_URL}public/${q.imagem}` : '';
+            const imgSrc = q.imagem ? `${UPLOAD_URL}${q.imagem.replace(/^uploads\//, '')}` : '';
             const imgStyle = q.imagem ? '' : 'display:none';
             const phStyle = q.imagem ? 'display:none' : '';
 
@@ -249,7 +249,7 @@ if (!isset($_SESSION['usuario_id'])) {
             }
 
             try {
-                const res = await fetch(`${BASE_URL}app/routes/questoes.php?acao=salvar`, {
+                const res = await fetch(`${API_URL}questoes&acao=salvar`, {
                     method: 'POST',
                     credentials: 'include',
                     body: fd
@@ -277,7 +277,7 @@ if (!isset($_SESSION['usuario_id'])) {
 
         async function confirmarExcluirEditar() {
             try {
-                const res = await fetch(`${BASE_URL}app/routes/questoes.php?acao=deletar`, {
+                const res = await fetch(`${API_URL}questoes&acao=deletar`, {
                     method: 'POST',
                     credentials: 'include',
                     headers: { 'Content-Type': 'application/json' },

@@ -1,322 +1,250 @@
-# +Português - Documentação MVC
+# Documentação MVC - +Português
 
-## 📁 Estrutura do Projeto
+## Visão Geral
 
-O projeto foi refatorado seguindo o padrão **MVC (Model-View-Controller)**:
+O +Português usa uma arquitetura MVC simples em PHP:
 
-```
-Projeto +Portugues/
-├── index.php                          # Entry point - redireciona para login/home
+- `public/`: ponto de entrada HTTP, CSS, uploads e API pública.
+- `app/config/`: configuração global, sessão, banco, constantes e helpers.
+- `app/models/`: acesso ao banco de dados.
+- `app/controllers/`: regras de negócio.
+- `app/routes/`: dispatchers internos chamados por `public/api.php`.
+- `app/views/`: telas renderizadas pelo router público.
+
+## Estrutura Atual
+
+```text
+mais_portugues/
 ├── public/
-│   ├── css/
-│   │   └── style.css                 # Estilos unificados
-│   ├── js/
-│   │   └── api.js                    # (futuro) Cliente API centralizado
-│   └── uploads/                       # Diretório para uploads de imagens
+│   ├── index.php              # Router das telas
+│   ├── api.php                # Entrada pública da API
+│   ├── css/style.css
+│   └── uploads/
 ├── app/
-│   ├── config/
-│   │   └── config.php                # Configuração unificada + autoloader
-│   ├── models/
-│   │   ├── Usuario.php               # CRUD de usuários + autenticação
-│   │   ├── Questao.php               # CRUD de questões com transações
-│   │   └── Alternativa.php           # Gerenciamento de alternativas
+│   ├── config/config.php
 │   ├── controllers/
-│   │   ├── LoginController.php       # Autenticação de usuários
-│   │   ├── LogoutController.php      # Logout
-│   │   ├── SessaoController.php      # Verificação de sessão + criação de usuário
-│   │   └── QuestaoController.php     # CRUD de questões com upload de imagem
+│   │   ├── LoginController.php
+│   │   ├── LogoutController.php
+│   │   ├── SessaoController.php
+│   │   └── QuestaoController.php
+│   ├── models/
+│   │   ├── Usuario.php
+│   │   ├── Questao.php
+│   │   └── Alternativa.php
 │   ├── routes/
-│   │   ├── login.php                 # Dispatcher para login
-│   │   ├── logout.php                # Dispatcher para logout
-│   │   ├── usuarios.php              # Dispatcher para operações de usuário
-│   │   └── questoes.php              # Dispatcher para operações de questão
+│   │   ├── login.php
+│   │   ├── logout.php
+│   │   ├── usuarios.php
+│   │   └── questoes.php
 │   └── views/
-│       ├── login.php                 # Formulário de login
-│       ├── signup.php                # Formulário de cadastro
-│       ├── home.php                  # Dashboard com lista de questões
-│       ├── editar_questao.php        # Edição de questão
-│       ├── criacao_objetiva.php      # Criação de questão objetiva
-│       ├── criacao_dissertativa.php  # Criação de questão dissertativa
+│       ├── index.php
+│       ├── login.php
+│       ├── signup.php
+│       ├── home.php
+│       ├── configuracoes.php
+│       ├── criacao_objetiva.php
+│       ├── criacao_dissertativa.php
+│       ├── editar_questao.php
 │       └── abas/
-│           ├── questao_objetiva.php  # Visualização de questão objetiva
-│           └── questao_dissertativa.php # Visualização de questão dissertativa
-└── database/
-    └── config.php                    # Configuração do banco (schema)
+└── docs/
 ```
 
-## 🔄 Fluxo de Dados
+## Fluxo das Telas
 
-```
-┌─────────────────────────────────────────────────┐
-│                    index.php                     │
-│          (Entry point - redirect baseado      │
-│           na sessão do usuário)                 │
-└────────────────┬────────────────────────────────┘
-                 │
-         ┌───────┴────────┐
-         │                │
-    [Autenticado]    [Sem Login]
-         │                │
-    home.php         login.php
-         │                │
-         └───────┬────────┘
-                 │
-          ┌──────▼──────────────────────────────────────┐
-          │   app/routes/*.php                         │
-          │ (Dispatcher - recebe parâmetro "acao")     │
-          └──────┬──────────────────────────────────────┘
-                 │
-          ┌──────▼──────────────────────────────────────┐
-          │   app/controllers/*Controller.php           │
-          │ (Lógica de negócio - processa requisição) │
-          └──────┬──────────────────────────────────────┘
-                 │
-          ┌──────▼──────────────────────────────────────┐
-          │   app/models/*.php                         │
-          │ (Acesso ao banco de dados)                │
-          └──────────────────────────────────────────────┘
+```text
+Navegador
+  -> public/index.php?page=home
+  -> app/config/config.php
+  -> app/views/home.php
 ```
 
-## 📡 Endpoints da API
+Se o usuário não estiver autenticado e tentar acessar uma tela protegida, o router carrega a tela de login.
+
+## Fluxo da API
+
+```text
+Navegador fetch()
+  -> public/api.php?rota=questoes&acao=listar
+  -> app/routes/questoes.php
+  -> QuestaoController::listar()
+  -> Questao::listar()
+  -> MySQL
+```
+
+O frontend deve chamar `public/api.php`, não `app/routes/*.php` diretamente.
+
+## Constantes Importantes
+
+Definidas em `app/config/config.php`:
+
+- `BASE_URL`: caminho público detectado automaticamente.
+- `API_URL`: `BASE_URL . 'api.php?rota='`.
+- `UPLOAD_URL`: `BASE_URL . 'uploads/'`.
+- `APP_PATH`: caminho da pasta `app`.
+- `PUBLIC_PATH`: caminho da pasta `public`.
+- `UPLOADS_PATH`: caminho físico para uploads.
+
+## Endpoints
+
+Base local:
+
+```text
+http://localhost/mais_portugues/public/api.php?rota=
+```
 
 ### Login
-```
-POST /app/routes/login.php
+
+```http
+POST /mais_portugues/public/api.php?rota=login
 Content-Type: application/json
+```
 
+```json
 {
-  "email": "usuario@example.com",
-  "senha": "senha123"
-}
-
-Resposta:
-{
-  "ok": true,
-  "mensagem": "Login realizado com sucesso"
+  "email": "teste@teste.com",
+  "senha": "Teste@123"
 }
 ```
 
 ### Logout
-```
-GET /app/routes/logout.php
 
-Resposta:
-{
-  "ok": true,
-  "mensagem": "Logout realizado com sucesso"
-}
+```http
+GET /mais_portugues/public/api.php?rota=logout
 ```
 
 ### Verificar Sessão
-```
-GET /app/routes/usuarios.php?acao=verificar_sessao
 
-Resposta:
-{
-  "usuario_id": "123",
-  "usuario_email": "usuario@example.com",
-  "usuario_nome": "Nome do Usuário",
-  "tempo_sessao": 3600
-}
+```http
+GET /mais_portugues/public/api.php?rota=usuarios&acao=verificar_sessao
 ```
 
 ### Criar Usuário
-```
-POST /app/routes/usuarios.php?acao=criar
+
+```http
+POST /mais_portugues/public/api.php?rota=usuarios&acao=criar
 Content-Type: application/json
+```
 
+```json
 {
-  "nome": "Novo Usuário",
-  "email": "novo@example.com",
-  "senha": "Senha@123"
+  "nome": "Usuário Teste",
+  "email": "teste@teste.com",
+  "senha": "Teste@123"
 }
+```
 
-Resposta:
+### Atualizar Perfil
+
+```http
+POST /mais_portugues/public/api.php?rota=usuarios&acao=atualizar_perfil
+Content-Type: application/json
+```
+
+```json
 {
-  "ok": true,
-  "mensagem": "Usuário criado com sucesso"
+  "nome": "Novo Nome",
+  "email": "novo@email.com"
+}
+```
+
+### Alterar Senha
+
+```http
+POST /mais_portugues/public/api.php?rota=usuarios&acao=alterar_senha
+Content-Type: application/json
+```
+
+```json
+{
+  "senha_atual": "Teste@123",
+  "nova_senha": "NovaSenha1"
 }
 ```
 
 ### Listar Questões
-```
-GET /app/routes/questoes.php?acao=listar&tipo=&status=&genero=&busca=
 
-Parâmetros (opcionais):
-- tipo: "objetiva" ou "dissertativa"
-- status: "rascunho" ou "publicada"
-- genero: narrativo, argumentativo, descritivo, expositivo, instrucional
-- busca: string de busca
-
-Resposta:
-{
-  "ok": true,
-  "dados": [
-    {
-      "id": "1",
-      "titulo": "Questão 1",
-      "tipo": "objetiva",
-      "genero": "narrativo",
-      ...
-    }
-  ]
-}
+```http
+GET /mais_portugues/public/api.php?rota=questoes&acao=listar
 ```
 
-### Buscar Questão por ID
-```
-GET /app/routes/questoes.php?acao=buscar&id=X
+Filtros opcionais:
 
-Resposta:
-{
-  "ok": true,
-  "dados": {
-    "id": "1",
-    "titulo": "Questão",
-    "tipo": "objetiva",
-    "enunciado": "...",
-    "alternativas": {"A": "...", "B": "...", ...},
-    "correta": "A",
-    "explicacao": "...",
-    "imagem": "public/uploads/..."
-  }
-}
+- `busca`
+- `tipo`
+- `status`
+- `genero`
+- `subgenero`
+
+### Buscar Questão
+
+```http
+GET /mais_portugues/public/api.php?rota=questoes&acao=buscar&id=1
 ```
 
-### Salvar Questão (Create/Update)
-```
-POST /app/routes/questoes.php?acao=salvar
+### Salvar Questão
+
+```http
+POST /mais_portugues/public/api.php?rota=questoes&acao=salvar
 Content-Type: multipart/form-data
-
-Campos:
-- id (opcional, para update)
-- tipo: "objetiva" ou "dissertativa"
-- acao: "salvar" ou "postar"
-- titulo: string
-- genero: string
-- enunciado: string
-- especificacao: string (opcional)
-- subgenero: string (opcional)
-- explicacao: string (opcional)
-- alt_A, alt_B, alt_C, alt_D, alt_E (para objetiva)
-- correta: "A"-"E" (para objetiva)
-- imagem: file (opcional)
-
-Resposta:
-{
-  "ok": true,
-  "id": "2",
-  "mensagem": "Questão salva com sucesso"
-}
 ```
+
+Campos principais:
+
+- `id`: opcional, usado para edição.
+- `tipo`: `objetiva` ou `dissertativa`.
+- `acao`: `salvar` ou `postar`.
+- `titulo`
+- `genero`
+- `subgenero`
+- `especificacao`
+- `enunciado`
+- `explicacao`
+- `imagem`: opcional.
+- `correta`: obrigatório para objetiva.
+- `alt_A` até `alt_E`: obrigatórios para objetiva.
 
 ### Deletar Questão
-```
-POST /app/routes/questoes.php?acao=deletar
+
+```http
+POST /mais_portugues/public/api.php?rota=questoes&acao=deletar
 Content-Type: application/json
+```
 
+```json
 {
-  "id": "1"
-}
-
-Resposta:
-{
-  "ok": true,
-  "mensagem": "Questão deletada com sucesso"
+  "id": 1
 }
 ```
 
-## 🔐 Autenticação
+## Segurança
 
-- Senhas são armazenadas com `password_hash(PASSWORD_DEFAULT)`
-- Todas as requisições usam `credentials: 'include'` para manter sessão
-- Verificação de autenticação obrigatória em controllers críticos
-- User isolation: cada usuário só vê suas próprias questões
+- Senhas com `password_hash(PASSWORD_DEFAULT)`.
+- Login validado com `password_verify()`.
+- Sessão PHP iniciada em `config.php`.
+- Cookies com `httponly` e `samesite=Lax`.
+- Controllers críticos chamam `verificarAutenticacao()`.
+- Questões são sempre filtradas por `id_usuario_criador`.
+- Buscar, editar e excluir questão exigem que a questão pertença ao usuário logado.
 
-## 📝 Padrões do Código
+## Banco de Dados
 
-### Models
-```php
-class Usuario {
-    public static function buscarPorEmail($email) { }
-    public static function buscarPorId($id) { }
-    public static function criar($dados) { }
-}
-```
+Tabelas:
 
-### Controllers
-```php
-class LoginController {
-    public static function fazer_login() {
-        // Processa e valida
-        // Chama Model
-        // Retorna JSON
-    }
-}
-```
+- `usuarios`
+- `questoes`
+- `alternativas_objetivas`
 
-### Routes
-```php
-require '../config/config.php';
+Relações:
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    LoginController::fazer_login();
-}
-```
+- `questoes.id_usuario_criador` aponta para `usuarios.id`.
+- `alternativas_objetivas.id_questao` aponta para `questoes.id`.
 
-### Helpers (em config.php)
-```php
-resposta_sucesso($dados, $mensagem = '')
-resposta_erro($erro)
-resposta_validacao($erros)
-sanitizarTexto($texto)
-obterDadosJSON()
-verificarAutenticacao()
-```
+## Validações
 
-## 🗄️ Banco de Dados
+- Email único.
+- Senha com no mínimo 8 caracteres, letra maiúscula, letra minúscula e número.
+- Questões objetivas exigem 5 alternativas e uma resposta correta.
+- Upload máximo: 5 MB.
+- Tipos aceitos: JPEG, PNG, WebP e GIF.
 
-### Tabelas
-- `usuarios` - Usuários do sistema
-- `questoes` - Questões criadas
-- `alternativas_objetivas` - Alternativas de questões objetivas
-
-### User Isolation
-Todas as queries filtram por `id_usuario_criador` obrigatoriamente, garantindo que usuários só acessem seus próprios dados.
-
-## 🚀 Como Usar
-
-1. **Acessar o sistema**: Abra `http://localhost/Projeto%20+Portugues/index.php`
-2. **Login**: Use credenciais de usuário cadastrado
-3. **Dashboard**: Visualize e gerencie suas questões
-4. **Criar questão**: Clique no botão "+ Adicionar questão"
-5. **Editar/Visualizar**: Clique na questão desejada
-
-## ⚙️ Configuração
-
-Edite `app/config/config.php` para:
-- Credenciais do banco de dados
-- Constantes de aplicação
-- Limite de tamanho de upload
-- Tipos de arquivo permitidos
-
-## 📋 Validações
-
-- Emails únicos no sistema
-- Senhas com mínimo 8 caracteres (letra maiúscula, minúscula, número)
-- Questões objetivas requerem 5 alternativas e 1 correta
-- Uploads limitados a 5MB
-- Formatos de imagem: JPEG, PNG, WebP, GIF
-
-## 🐛 Troubleshooting
-
-- **Erro de conexão ao banco**: Verifique `app/config/config.php`
-- **Upload não funciona**: Verifique permissões de `public/uploads/`
-- **Sessão expirada**: Aumente `TEMPO_SESSAO` em `config.php`
-- **Erro 500**: Habilite `DEBUG_MODE: true` em `config.php` para logs
-
----
-
-**Versão**: 1.0 MVC Refactor
-**Data**: 2024
-**Padrão**: PHP 7.4+ com MySQLi OOP
+Atualizado em 17/05/2026.

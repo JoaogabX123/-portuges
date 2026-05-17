@@ -17,7 +17,7 @@ if (!isset($_SESSION['usuario_id'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>+Português – Configurações</title>
     <link rel="stylesheet" href="./css/style.css">
-    <script>const BASE_URL = '<?php echo BASE_URL; ?>';</script>
+    <script>const BASE_URL = '<?php echo BASE_URL; ?>'; const API_URL = '<?php echo API_URL; ?>'; const UPLOAD_URL = '<?php echo UPLOAD_URL; ?>';</script>
     <style>
         /* ── Configurações ── */
         .config-container {
@@ -414,12 +414,12 @@ if (!isset($_SESSION['usuario_id'])) {
 
     async function recarregarDados() {
         try {
-            const res = await fetch(`${BASE_URL}app/routes/usuarios.php?acao=verificar_sessao`, {
+            const res = await fetch(`${API_URL}usuarios&acao=verificar_sessao`, {
                 credentials: 'include'
             });
             if (!res.ok) { window.location.href = './?page=login'; return; }
-            const dados = await res.json();
-            dadosUsuario = dados.usuario || dados;
+            const resposta = await res.json();
+            dadosUsuario = resposta.dados?.usuario || resposta.usuario || resposta.dados || resposta;
             document.getElementById('cfg_nome').value  = dadosUsuario.nome  || '';
             document.getElementById('cfg_email').value = dadosUsuario.email || '';
         } catch (e) {
@@ -441,7 +441,7 @@ if (!isset($_SESSION['usuario_id'])) {
         btn.textContent = 'Salvando...';
 
         try {
-            const res = await fetch(`${BASE_URL}app/routes/usuarios.php?acao=atualizar_perfil`, {
+            const res = await fetch(`${API_URL}usuarios&acao=atualizar_perfil`, {
                 method: 'POST',
                 credentials: 'include',
                 headers: { 'Content-Type': 'application/json' },
@@ -480,7 +480,7 @@ if (!isset($_SESSION['usuario_id'])) {
         }
 
         try {
-            const res = await fetch(`${BASE_URL}app/routes/usuarios.php?acao=alterar_senha`, {
+            const res = await fetch(`${API_URL}usuarios&acao=alterar_senha`, {
                 method: 'POST',
                 credentials: 'include',
                 headers: { 'Content-Type': 'application/json' },
@@ -533,7 +533,7 @@ if (!isset($_SESSION['usuario_id'])) {
         }
 
         try {
-            const res = await fetch(`${BASE_URL}app/routes/usuarios.php?acao=salvar_recuperacao`, {
+            const res = await fetch(`${API_URL}usuarios&acao=salvar_recuperacao`, {
                 method: 'POST',
                 credentials: 'include',
                 headers: { 'Content-Type': 'application/json' },

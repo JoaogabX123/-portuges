@@ -5,6 +5,25 @@
  */
 
 // ============================================
+// 0. TRATAMENTO DE ERROS (deve estar primeiro)
+// ============================================
+error_reporting(E_ALL);
+set_error_handler(function($errno, $errstr, $errfile, $errline) {
+    header('Content-Type: application/json; charset=utf-8');
+    http_response_code(500);
+    echo json_encode([
+        'ok' => false,
+        'erro' => 'Erro PHP: ' . $errstr,
+        'debug' => [
+            'arquivo' => basename($errfile),
+            'linha' => $errline,
+            'tipo' => $errno
+        ]
+    ], JSON_UNESCAPED_UNICODE);
+    exit;
+});
+
+// ============================================
 // 1. SESSÃO (antes de qualquer coisa)
 // ============================================
 define('TEMPO_SESSAO', 3600); // 1 hora em segundos
@@ -75,7 +94,15 @@ define('APP_ROOT', dirname(dirname(__DIR__)));
 define('APP_PATH', APP_ROOT . '/app');
 define('PUBLIC_PATH', APP_ROOT . '/public');
 define('UPLOADS_PATH', PUBLIC_PATH . '/uploads');
-define('BASE_URL', '/+portuges/');
+$scriptDir = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? '/'));
+$publicUrl = rtrim($scriptDir, '/') . '/';
+if ($publicUrl === '//') {
+    $publicUrl = '/';
+}
+
+define('BASE_URL', $publicUrl);
+define('API_URL', BASE_URL . 'api.php?rota=');
+define('UPLOAD_URL', BASE_URL . 'uploads/');
 
 // ============================================
 // 5. CONFIGURAÇÕES DE UPLOAD
@@ -144,7 +171,10 @@ spl_autoload_register(function($classe) {
  * Sanitizar texto contra XSS
  */
 function sanitizarTexto($texto) {
-    return trim(htmlspecialchars($texto, ENT_QUOTES, 'UTF-8'));
+    if ($texto === null || $texto === '') {
+        return '';
+    }
+    return trim(htmlspecialchars((string)$texto, ENT_QUOTES, 'UTF-8'));
 }
 
 /**

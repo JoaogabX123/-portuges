@@ -21,13 +21,17 @@ if (!isset($_SESSION['usuario_id'])) {
 
     <script>
         const BASE_URL = '<?php echo BASE_URL; ?>';
+        const API_URL = '<?php echo API_URL; ?>';
+        const UPLOAD_URL = '<?php echo UPLOAD_URL; ?>';
     </script>
 </head>
 
 <body>
 
     <header>
-        <h1>+Português</h1>
+        <div class="header-titulo">
+            <h1>+Português</h1>
+        </div>
 
         <div class="filtros">
             <input 
@@ -50,38 +54,24 @@ if (!isset($_SESSION['usuario_id'])) {
                 placeholder="Filtrar por subgênero"
                 oninput="carregarQuestoes()"
             >
+
+            <div class="sugestoes-container" id="sugestoesContainer" style="display:none;">
+                <div class="sugestoes-titulo">Sugestões de gênero / subgênero</div>
+                <div class="sugestoes-lista" id="sugestoesLista"></div>
+            </div>
         </div>
 
         <div class="usuario-menu">
-
-            <button class="btn-usuario" type="button" onclick="window.location.href='./?page=configuracoes'">
-                👤
+            <button class="btn-usuario" type="button" onclick="toggleDropdownUsuario()">
+                ☰
             </button>
 
             <div class="dropdown-usuario" id="dropdownUsuario">
-
-                <a href="./?page=configuracoes">
-                    ⚙️ Configurações
-                </a>
-
-                <a href="./?page=info">
-                    ℹ️ Info
-                </a>
-
-                <a href="./?page=termos">
-                    📄 Termos de Uso
-                </a>
-
+                <a href="./?page=configuracoes">⚙️ Configurações</a>
+                <a href="./?page=info">ℹ️ Info</a>
+                <a href="./?page=termos">📄 Termos de Uso</a>
                 <hr>
-
-                <a 
-                    href="javascript:void(0);" 
-                    onclick="fazerLogout()"
-                    class="logout-option"
-                >
-                    🚪 Sair
-                </a>
-
+                <a href="javascript:void(0);" onclick="fazerLogout()" class="logout-option">🚪 Sair</a>
             </div>
         </div>
     </header>
@@ -250,57 +240,12 @@ if (!isset($_SESSION['usuario_id'])) {
         </div>
     </div>
 
-    <!-- Modal de Envio -->
-    <div class="modal-overlay" id="modal_envio">
-        <div class="modal">
-            <h2>Enviar Questão</h2>
-            <div class="formulario">
-                <div class="campo">
-                    <label for="email_destinatario">Email do Destinatário:</label>
-                    <input type="email" id="email_destinatario" placeholder="exemplo@email.com">
-                </div>
-                <div class="campo">
-                    <label for="descricao_envio">Descrição do Envio:</label>
-                    <textarea id="descricao_envio" placeholder="Descreva o motivo ou contexto do envio..." style="height: 80px;"></textarea>
-                </div>
-                <div class="campo">
-                    <label for="questao_envio">Questão:</label>
-                    <textarea id="questao_envio" placeholder="Conteúdo da questão..." style="height: 100px;" disabled></textarea>
-                </div>
-            </div>
-            <div class="modal-botoes" style="margin-top: 20px; gap: 10px;">
-                <button class="btn salvar" onclick="enviarQuestao()">Enviar</button>
-                <button class="btn cancelar" onclick="fecharModalEnvio()">Cancelar</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal de Confirmação de Exclusão -->
-    <div class="modal-overlay" id="modal_confirmacao_excluir">
-        <div class="modal">
-            <h2>Confirmar Exclusão</h2>
-            <p style="margin-bottom: 20px; color: #666;">Tem certeza que deseja excluir esta questão? Esta ação não pode ser desfeita.</p>
-            <div class="modal-botoes" style="gap: 10px;">
-                <button class="btn excluir" onclick="confirmarExcluir()" style="flex: 1;">Excluir</button>
-                <button class="btn cancelar" onclick="fecharModalConfirmacao()" style="flex: 1;">Cancelar</button>
-            </div>
-        </div>
-    </div>
-
     <script>
 
         let carregandoQuestoes = false;
         let questaoAtualParaExcluir = null;
         let questaoAtualParaEnviar = null;
-
-        let questaoAtualParaExcluir = null;
-
-        let questaoAtualParaEnviar = null;
-
-
-        let questaoAtualParaExcluir = null;
-
-        let questaoAtualParaEnviar = null;
+        let questoesCarregadas = [];
 
 
         window.addEventListener('DOMContentLoaded', async () => {
@@ -310,7 +255,7 @@ if (!isset($_SESSION['usuario_id'])) {
                 console.log('🔍 Verificando sessão...');
 
                 const res = await fetch(
-                    `${BASE_URL}app/routes/usuarios.php?acao=verificar_sessao`,
+                    `${API_URL}usuarios&acao=verificar_sessao`,
                     {
                         credentials: 'include'
                     }
@@ -405,7 +350,7 @@ if (!isset($_SESSION['usuario_id'])) {
                 }
 
                 const url =
-                    `${BASE_URL}app/routes/questoes.php?${params.toString()}`;
+                    `${API_URL}questoes&${params.toString()}`;
 
                 const res = await fetch(url, {
                     credentials: 'include'
@@ -423,6 +368,9 @@ if (!isset($_SESSION['usuario_id'])) {
 
                 const questoes =
                     resposta.dados?.questoes || [];
+
+                questoesCarregadas = questoes;
+                renderSugestoes();
 
                 const lista =
                     document.getElementById('lista');
@@ -485,7 +433,7 @@ if (!isset($_SESSION['usuario_id'])) {
                                 class="btn btn-acoes enviar"
                                 onclick="abrirModalEnvio(
                                     '${encodeURIComponent(q.id)}',
-                                    '${q.titulo.replace(/'/g, "\\'")}'
+                                    '${encodeURIComponent(q.titulo || '')}'
                                 )"
                             >
                                 📤 Enviar
@@ -573,6 +521,69 @@ if (!isset($_SESSION['usuario_id'])) {
         }
 
 
+        function renderSugestoes() {
+            const busca = document
+                .getElementById('campo_busca')
+                .value.trim()
+                .toLowerCase();
+
+            const container =
+                document.getElementById('sugestoesContainer');
+            const lista =
+                document.getElementById('sugestoesLista');
+
+            lista.innerHTML = '';
+
+            if (!busca || !questoesCarregadas.length) {
+                container.style.display = 'none';
+                return;
+            }
+
+            const itens = {};
+
+            questoesCarregadas.forEach(q => {
+                const titulo = (q.titulo || '').toLowerCase();
+                const enunciado = (q.enunciado || '').toLowerCase();
+
+                if (titulo.includes(busca) || enunciado.includes(busca)) {
+                    const genero = q.genero || 'Sem gênero';
+                    const subgenero = q.subgenero || '-';
+                    const key = `${genero}|${subgenero}`;
+
+                    if (!itens[key]) {
+                        itens[key] = { genero, subgenero };
+                    }
+                }
+            });
+
+            const valores = Object.values(itens).slice(0, 10);
+
+            if (!valores.length) {
+                container.style.display = 'none';
+                return;
+            }
+
+            valores.forEach(item => {
+                const botao = document.createElement('button');
+                botao.type = 'button';
+                botao.className = 'sugestao-item';
+                botao.textContent =
+                    item.subgenero && item.subgenero !== '-'
+                        ? `${item.genero} › ${item.subgenero}`
+                        : item.genero;
+
+                botao.addEventListener('click', () => {
+                    document.getElementById('filtro_genero').value = item.genero;
+                    document.getElementById('filtro_subgenero').value = item.subgenero === '-' ? '' : item.subgenero;
+                    carregarQuestoes();
+                });
+
+                lista.appendChild(botao);
+            });
+
+            container.style.display = 'block';
+        }
+
         async function enviarQuestao() {
 
             const email =
@@ -643,7 +654,7 @@ if (!isset($_SESSION['usuario_id'])) {
             try {
 
                 const res = await fetch(
-                    `${BASE_URL}app/routes/questoes.php?acao=deletar`,
+                    `${API_URL}questoes&acao=deletar`,
                     {
                         method: 'POST',
 
@@ -703,15 +714,25 @@ if (!isset($_SESSION['usuario_id'])) {
 
 
         async function fazerLogout() {
-
-            await fetch(
-                `${BASE_URL}app/routes/logout.php`,
-                {
-                    credentials: 'include'
-                }
-            );
-
-            window.location.href = './?page=login';
+            try {
+                const res = await fetch(
+                    `${API_URL}logout`,
+                    {
+                        method: 'GET',
+                        credentials: 'include'
+                    }
+                );
+                
+                // Sempre redireciona para login, independente da resposta
+                setTimeout(() => {
+                    window.location.href = './?page=login';
+                }, 100);
+                
+            } catch (erro) {
+                console.error('Erro ao fazer logout:', erro);
+                // Redireciona mesmo com erro
+                window.location.href = './?page=login';
+            }
         }
 
     </script>

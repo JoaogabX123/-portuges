@@ -55,6 +55,7 @@ class QuestaoController {
      */
     public static function buscar() {
         try {
+            $usuario_id = verificarAutenticacao();
             $id = $_GET['id'] ?? '';
             
             if (empty($id)) {
@@ -67,7 +68,7 @@ class QuestaoController {
             }
             
             $id = intval($id);
-            $questao = Questao::buscarPorId($id);
+            $questao = Questao::buscarPorId($id, $usuario_id);
             
             if (!$questao) {
                 resposta_erro('Questão não encontrada', 404);
@@ -88,20 +89,40 @@ class QuestaoController {
         try {
             $usuario_id = verificarAutenticacao();
             
-            $id = $_POST['id'] ?? '';
+            $id = !empty($_POST['id']) ? (int)$_POST['id'] : 0;
             $tipo = $_POST['tipo'] ?? 'objetiva';
             $acao = $_POST['acao'] ?? 'salvar';
             $status = ($acao === 'postar') ? 'publicada' : 'rascunho';
             
             // Validar campos obrigatórios
+            $erros = [];
             if (empty($_POST['titulo'])) {
-                resposta_validacao('Título é obrigatório');
+                $erros[] = 'Título é obrigatório';
             }
             if (empty($_POST['genero'])) {
-                resposta_validacao('Gênero é obrigatório');
+                $erros[] = 'Gênero é obrigatório';
             }
             if (empty($_POST['enunciado'])) {
-                resposta_validacao('Enunciado é obrigatório');
+                $erros[] = 'Enunciado é obrigatório';
+            }
+            
+            if ($tipo === 'objetiva') {
+                if (empty($_POST['correta'])) {
+                    $erros[] = 'Resposta correta é obrigatória';
+                }
+                $alternativas_vazias = [];
+                foreach (['A','B','C','D','E'] as $letra) {
+                    if (empty($_POST["alt_$letra"])) {
+                        $alternativas_vazias[] = $letra;
+                    }
+                }
+                if (!empty($alternativas_vazias)) {
+                    $erros[] = 'Alternativas vazias: ' . implode(', ', $alternativas_vazias);
+                }
+            }
+            
+            if (!empty($erros)) {
+                resposta_validacao($erros);
             }
             
             // Processar upload de imagem
@@ -135,14 +156,6 @@ class QuestaoController {
             ];
             
             if ($tipo === 'objetiva') {
-                if (empty($_POST['correta'])) {
-                    resposta_validacao('Resposta correta é obrigatória');
-                }
-                if (empty($_POST['alt_A']) || empty($_POST['alt_B']) || empty($_POST['alt_C']) || 
-                    empty($_POST['alt_D']) || empty($_POST['alt_E'])) {
-                    resposta_validacao('Todas as 5 alternativas são obrigatórias');
-                }
-                
                 $dadosQuestao['correta'] = $_POST['correta'];
                 $dadosQuestao['alternativas'] = [
                     'A' => $_POST['alt_A'],
@@ -155,7 +168,7 @@ class QuestaoController {
             
             if (!empty($id)) {
                 // Atualizar
-                $questaoExistente = Questao::buscarPorId($id);
+                $questaoExistente = Questao::buscarPorId($id, $usuario_id);
                 if ($questaoExistente) {
                     if (empty($caminhoImagem) && !empty($questaoExistente['imagem'])) {
                         $dadosQuestao['imagem'] = $questaoExistente['imagem'];
@@ -163,8 +176,7 @@ class QuestaoController {
                     $questaoAtualizada = Questao::atualizar($id, $dadosQuestao);
                     resposta_sucesso(['id' => $questaoAtualizada['id']], 'Questão atualizada com sucesso');
                 } else {
-                    $questaoNova = Questao::criar($dadosQuestao);
-                    resposta_sucesso(['id' => $questaoNova['id']], 'Questão salva com sucesso');
+                    resposta_erro('Questão não encontrada para atualização', 404);
                 }
             } else {
                 // Criar nova
@@ -183,7 +195,7 @@ class QuestaoController {
      */
     public static function deletar() {
         try {
-            verificarAutenticacao();
+            $usuario_id = verificarAutenticacao();
             
             $dados = obterDadosJSON();
             $id = $dados['id'] ?? '';
@@ -193,7 +205,7 @@ class QuestaoController {
             }
             
             $id = intval($id);
-            $questao = Questao::buscarPorId($id);
+            $questao = Questao::buscarPorId($id, $usuario_id);
             
             if (!$questao) {
                 resposta_erro('Questão não encontrada', 404);
@@ -221,9 +233,13 @@ class QuestaoController {
             return ['erro' => 'Erro ao fazer upload da imagem'];
         }
         
-        $mime_type = mime_content_type($arquivo['tmp_name']);
+        // Usar finfo_file em vez de mime_content_type (deprecated)
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        $mime_type = finfo_file($finfo, $arquivo['tmp_name']);
+        finfo_close($finfo);
+        
         if (!in_array($mime_type, TIPOS_PERMITIDOS)) {
-            return ['erro' => 'Tipo de arquivo não permitido'];
+            return ['erro' => 'Tipo de arquivo não permitido (MIME: ' . $mime_type . ')'];
         }
         
         if ($arquivo['size'] > TAMANHO_MAXIMO_UPLOAD) {

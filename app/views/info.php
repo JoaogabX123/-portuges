@@ -17,7 +17,7 @@ if (!isset($_SESSION['usuario_id'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>+Português – Informações</title>
     <link rel="stylesheet" href="./css/style.css">
-    <script>const BASE_URL = '<?php echo BASE_URL; ?>';</script>
+    <script>const BASE_URL = '<?php echo BASE_URL; ?>'; const API_URL = '<?php echo API_URL; ?>'; const UPLOAD_URL = '<?php echo UPLOAD_URL; ?>';</script>
     <style>
         /* ── Info page ── herda o visual da landing (index.php) ── */
         * { margin: 0; padding: 0; box-sizing: border-box; }

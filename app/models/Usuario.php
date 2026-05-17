@@ -161,5 +161,91 @@ class Usuario {
         $stmt->execute();
         $stmt->close();
     }
+
+    /**
+     * Atualizar perfil do usuario logado
+     */
+    public static function atualizarPerfil($id, $nome, $email) {
+        global $conexao;
+
+        $id = (int) $id;
+        $nome = sanitizarTexto($nome);
+        $email = sanitizarTexto($email);
+
+        $stmt = $conexao->prepare("SELECT id FROM usuarios WHERE email = ? AND id <> ? LIMIT 1");
+        if (!$stmt) {
+            throw new Exception('Erro ao preparar query: ' . $conexao->error);
+        }
+
+        $stmt->bind_param("si", $email, $id);
+        $stmt->execute();
+        $resultado = $stmt->get_result();
+        $emailEmUso = $resultado->num_rows > 0;
+        $stmt->close();
+
+        if ($emailEmUso) {
+            throw new Exception('Email ja cadastrado por outro usuario');
+        }
+
+        $stmt = $conexao->prepare("UPDATE usuarios SET nome = ?, email = ? WHERE id = ?");
+        if (!$stmt) {
+            throw new Exception('Erro ao preparar query: ' . $conexao->error);
+        }
+
+        $stmt->bind_param("ssi", $nome, $email, $id);
+        if (!$stmt->execute()) {
+            throw new Exception('Erro ao atualizar perfil: ' . $stmt->error);
+        }
+
+        $stmt->close();
+        return true;
+    }
+
+    /**
+     * Alterar senha do usuario logado
+     */
+    public static function alterarSenha($id, $senhaAtual, $novaSenha) {
+        global $conexao;
+
+        $id = (int) $id;
+
+        if ($senhaAtual === '' || $novaSenha === '') {
+            throw new Exception('Senha atual e nova senha sao obrigatorias');
+        }
+
+        if (strlen($novaSenha) < 8 || !preg_match('/[A-Z]/', $novaSenha) ||
+            !preg_match('/[a-z]/', $novaSenha) || !preg_match('/\d/', $novaSenha)) {
+            throw new Exception('Senha deve ter minimo 8 caracteres, uma maiuscula, uma minuscula e um numero');
+        }
+
+        $stmt = $conexao->prepare("SELECT senha FROM usuarios WHERE id = ? LIMIT 1");
+        if (!$stmt) {
+            throw new Exception('Erro ao preparar query: ' . $conexao->error);
+        }
+
+        $stmt->bind_param("i", $id);
+        $stmt->execute();
+        $resultado = $stmt->get_result();
+        $usuario = $resultado->fetch_assoc();
+        $stmt->close();
+
+        if (!$usuario || !password_verify($senhaAtual, $usuario['senha'])) {
+            throw new Exception('Senha atual invalida');
+        }
+
+        $hash = password_hash($novaSenha, PASSWORD_DEFAULT);
+        $stmt = $conexao->prepare("UPDATE usuarios SET senha = ? WHERE id = ?");
+        if (!$stmt) {
+            throw new Exception('Erro ao preparar query: ' . $conexao->error);
+        }
+
+        $stmt->bind_param("si", $hash, $id);
+        if (!$stmt->execute()) {
+            throw new Exception('Erro ao alterar senha: ' . $stmt->error);
+        }
+
+        $stmt->close();
+        return true;
+    }
 }
 ?>
